@@ -1,0 +1,25 @@
+[project]
+name = "resume-factory"
+version = "0.1.0"
+description = "Factory that aligns a factual master resume to many job descriptions and renders DOCX resumes in the SAMPLE_FORMAT style."
+requires-python = ">=3.11"
+dependencies = [
+    "python-docx>=1.1",
+    "lxml>=5.0",
+    "pyyaml>=6.0",
+    "beautifulsoup4>=4.12",
+    "requests>=2.31",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/resume_factory"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
