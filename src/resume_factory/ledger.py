@@ -116,11 +116,16 @@ def parse_master_resume(html_path: Path | str) -> FactLedger:
             "Microsoft Access",
         ],
         "ai_and_automation": [
+            "Gemini",
+            "Copilot",
             "OpenAI Codex",
             "GitHub Copilot",
             "Ollama",
+            "OpenCode",
+            "Hermes",
             "Python custom agents",
             "AI Implementation",
+            "AI Implementation & Agentic Workflows",
             "n8n",
             "Ansible",
         ],
@@ -129,10 +134,13 @@ def parse_master_resume(html_path: Path | str) -> FactLedger:
             "24x7 Production Operations",
             "24x7 Incident Operations & On-Call",
             "Budgeting",
+            "Budgeting & FinOps Governance",
             "Regulatory Compliance",
+            "AI Implementation & Agentic Workflows",
             "Change Leadership",
             "Change Management",
             "Cross Functional Collaboration",
+            "Cross-Functional Collaboration",
             "Vendor Management",
             "Contract Negotiation",
             "People Management",
@@ -143,6 +151,7 @@ def parse_master_resume(html_path: Path | str) -> FactLedger:
             "FinOps Adherence",
         ],
     }
+
 
     roles: list[FactRole] = [
         FactRole(

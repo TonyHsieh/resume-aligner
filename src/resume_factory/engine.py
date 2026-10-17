@@ -697,6 +697,15 @@ def generate_all_alignments(
     alignments.update(BATCH_3_ALIGNMENTS)
     from .alignments_batch4 import BATCH_4_ALIGNMENTS
     alignments.update(BATCH_4_ALIGNMENTS)
+    from .alignments_batch5 import BATCH_5_ALIGNMENTS
+    alignments.update(BATCH_5_ALIGNMENTS)
+
+    # Ensure search category listings are blocked
+    if "job-2061ebf1" in tracker.jobs:
+        tracker.jobs["job-2061ebf1"].status = "blocked"
+        tracker.jobs["job-2061ebf1"].company = "Amazon"
+        tracker.jobs["job-2061ebf1"].title = "Category Search Index"
+        tracker.jobs["job-2061ebf1"].note = "Search category index (moved to List of List of Jobs tab)"
 
     results = []
 
@@ -715,10 +724,12 @@ def generate_all_alignments(
         # Load directives
         directives_path = Path("inputs/directives.yaml")
         cutoff_year = 2011
+        key_leadership_skills = []
         if directives_path.exists():
             import yaml
             dirs = yaml.safe_load(directives_path.read_text(encoding="utf-8")) or {}
             cutoff_year = dirs.get("ageism", {}).get("cutoff_year", 2011)
+            key_leadership_skills = dirs.get("skills_emphasis", {}).get("key_leadership_skills", [])
 
         # Apply 15-year ageism filter to chronological roles
         import re
@@ -728,6 +739,19 @@ def generate_all_alignments(
             end_yr = 2026 if "Present" in r.dates else (int(years[-1]) if years else 2026)
             if end_yr >= cutoff_year:
                 filtered_roles.append(r)
+
+        # Enhance skills with directives key leadership skills emphasis
+        enhanced_skills = list(cfg["skills"])
+        if key_leadership_skills:
+            lead_text = ", ".join(key_leadership_skills) + "."
+            has_lead = False
+            for idx, s in enumerate(enhanced_skills):
+                if any(k in s.label.lower() for k in ["leadership", "management", "operations"]):
+                    enhanced_skills[idx] = Labeled(s.label, lead_text)
+                    has_lead = True
+                    break
+            if not has_lead:
+                enhanced_skills.append(Labeled("Key Leadership & Governance:", lead_text))
 
         # 1. Build Resume Object
         resume = Resume(
@@ -741,8 +765,9 @@ def generate_all_alignments(
                 Labeled(f"{edu['institution']}:", edu["degree"])
                 for edu in ledger.education
             ],
-            skills=cfg["skills"],
+            skills=enhanced_skills,
         )
+
 
         # 2. Validate Resume
         is_valid, validation_errors = validate_resume(
