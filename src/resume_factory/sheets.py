@@ -68,6 +68,48 @@ def pull_from_sheets(
     return new_urls
 
 
+def parse_recruiter_intros(intros_path: str | Path = DEFAULT_INTROS_FILE) -> list[dict]:
+    path = Path(intros_path)
+    if not path.exists():
+        return []
+    text = path.read_text(encoding="utf-8")
+    raw_chunks = text.split("## ")
+
+    entries = []
+    for c in raw_chunks:
+        if not c.strip() or c.startswith("Recruiter Introductions") or c.startswith("Tips for High"):
+            continue
+        first_line = c.strip().splitlines()[0]
+        num_m = re.match(r"^(\d+)\.\s*(.*)", first_line)
+        if not num_m:
+            continue
+        num = int(num_m.group(1))
+        header_title = num_m.group(2).strip()
+
+        url_m = re.search(r"\*\*Posting URL:\*\*\s*(https?://[^\s\)]+)", c)
+        posting_url = url_m.group(1).strip() if url_m else ""
+
+        note = ""
+        if "> *\"" in c:
+            note = c.split("> *\"")[1].split("\"*")[0].strip()
+        elif "> \"" in c:
+            note = c.split("> \"")[1].split("\"")[0].strip()
+
+        query = ""
+        if "```text" in c:
+            query = c.split("```text")[1].split("```")[0].strip()
+
+        entries.append({
+            "num": num,
+            "header": header_title,
+            "url": posting_url,
+            "canonical_url": canonical_source(posting_url) if posting_url else "",
+            "note": note,
+            "query": query,
+        })
+    return entries
+
+
 def push_to_sheets(
     webhook_url: str | None = None,
     tracker_path: str = "output/tracker.json",
@@ -75,7 +117,7 @@ def push_to_sheets(
 ) -> dict:
     url = get_webhook_url(webhook_url)
     tracker = Tracker(tracker_path)
-    intros_text = Path(intros_path).read_text(encoding="utf-8") if Path(intros_path).exists() else ""
+    intros = parse_recruiter_intros(intros_path)
 
     headers = [
         "Status",
@@ -90,21 +132,45 @@ def push_to_sheets(
     items = []
     rows = [headers]
 
-    for jid, job in tracker.jobs.items():
-        if job.status == "blocked":
-            continue
+    active_jobs = [j for j in tracker.jobs.values() if j.status != "blocked"]
+
+    for idx, job in enumerate(active_jobs):
         resume_path = job.outputs.get("resume", "")
 
-        # Extract intro note for this job
-        intro_note = ""
-        for chunk in intros_text.split("## "):
-            job_key = job.title.split("-")[0].strip().lower() if job.title else ""
-            if (job_key and job_key in chunk.lower()) or (job.company and job.company.lower() in chunk.lower()):
-                if "> *\"" in chunk:
-                    intro_note = chunk.split("> *\"")[1].split("\"*")[0].strip()
+        # Precise matching for recruiter intro note & search query
+        intro = None
+        job_canon = canonical_source(job.source)
+        # 1. Match by canonical URL
+        for e in intros:
+            if e["canonical_url"] and e["canonical_url"] == job_canon:
+                intro = e
+                break
+
+        # 2. Match by exact sequential index if company/title align
+        if not intro and idx < len(intros):
+            candidate = intros[idx]
+            c_name = job.company.lower().split("/")[0].strip() if job.company else ""
+            if c_name in candidate["header"].lower() or (job.title and job.title.lower()[:15] in candidate["header"].lower()):
+                intro = candidate
+
+        # 3. Match by specific job title within company
+        if not intro:
+            for e in intros:
+                if job.title and job.title.lower() in e["header"].lower():
+                    intro = e
                     break
 
-        search_query = f"https://www.linkedin.com/search/results/people/?keywords={job.company or 'Tech'}%20Recruiter"
+        intro_note = (
+            intro["note"]
+            if intro and intro["note"]
+            else f"Hi [Name], I noticed you're hiring for a {job.title} at {job.company}. I'd love to connect and be considered."
+        )
+        search_query = (
+            intro["query"]
+            if intro and intro["query"]
+            else f"https://www.linkedin.com/search/results/people/?keywords={job.company or 'Tech'}%20Recruiter"
+        )
+
         item_dict = {
             "Status": job.status.capitalize(),
             "Company": job.company or "",
@@ -112,7 +178,7 @@ def push_to_sheets(
             "Job Posting URL": job.source,
             "Tailored Resume File": resume_path,
             "Recruiter Search Query / Link": search_query,
-            "Recruiter Intro Message": intro_note or "I noticed you're hiring for this role. I'd love to connect and be considered.",
+            "Recruiter Intro Message": intro_note,
         }
         items.append(item_dict)
         rows.append([item_dict[h] for h in headers])
