@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Aligner - Project Status & Context (2026-10-16 23:43)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-card: #1e293b;
+      --bg-card-hover: #273549;
+      --border-color: #334155;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-blue: #38bdf8;
+      --accent-indigo: #818cf8;
+      --accent-emerald: #34d399;
+      --accent-amber: #fbbf24;
+      --accent-rose: #f43f5e;
+      --badge-success-bg: rgba(52, 211, 153, 0.15);
+      --badge-success-border: #34d399;
+      --badge-warning-bg: rgba(251, 191, 36, 0.15);
+      --badge-warning-border: #fbbf24;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9));
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 32px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .timestamp {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      color: var(--accent-blue);
+      background: rgba(56, 189, 248, 0.1);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    .lead {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+      max-width: 900px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .stat-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent-emerald);
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 4px;
+    }
+
+    section {
+      margin-bottom: 36px;
+    }
+
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-primary);
+    }
+
+    .section-title::before {
+      content: "";
+      display: inline-block;
+      width: 4px;
+      height: 20px;
+      background: var(--accent-blue);
+      border-radius: 2px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-success {
+      background: var(--badge-success-bg);
+      color: var(--accent-emerald);
+      border: 1px solid var(--badge-success-border);
+    }
+
+    .badge-warning {
+      background: var(--badge-warning-bg);
+      color: var(--accent-amber);
+      border: 1px solid var(--badge-warning-border);
+    }
+
+    .badge-blue {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent-blue);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    ul, ol {
+      padding-left: 20px;
+      color: var(--text-secondary);
+    }
+
+    li {
+      margin-bottom: 10px;
+    }
+
+    strong {
+      color: var(--text-primary);
+    }
+
+    code, .code-inline {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85em;
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--accent-blue);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(51, 65, 85, 0.7);
+    }
+
+    pre {
+      background: #0b1120;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 16px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      margin-top: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 16px;
+      font-size: 0.875rem;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+
+    tr:hover td {
+      background: var(--bg-card-hover);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .table-container {
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow-x: auto;
+      background: var(--bg-card);
+    }
+
+    .alert {
+      padding: 16px 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      border-left: 4px solid;
+    }
+
+    .alert-info {
+      background: rgba(56, 189, 248, 0.1);
+      border-color: var(--accent-blue);
+      color: #bae6fd;
+    }
+
+    .alert-success {
+      background: rgba(52, 211, 153, 0.1);
+      border-color: var(--accent-emerald);
+      color: #a7f3d0;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 20px;
+    }
+
+    .next-step-item {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      align-items: flex-start;
+    }
+
+    .step-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      color: var(--bg-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-color);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <header>
+      <div class="header-top">
+        <div>
+          <h1>Resume Aligner — Session Context & Status</h1>
+          <p class="lead">Concise, self-contained project snapshot and operational guide for resuming next session.</p>
+        </div>
+        <div class="timestamp">2026-10-16 23:43:41 PDT</div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value">57 / 57</div>
+          <div class="stat-label">Jobs Aligned & Synced</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">100%</div>
+          <div class="stat-label">0% Hallucination Validation</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">15 Years</div>
+          <div class="stat-label">Ageism Screening Gate (2011–Pres.)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">57 Unique</div>
+          <div class="stat-label">Recruiter Outreach Messages</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- SECTION 1: EXECUTIVE SUMMARY -->
+    <section>
+      <h2 class="section-title">1. Current Operational State</h2>
+      <div class="card">
+        <div class="alert alert-success">
+          <div>
+            <strong>Session Objectives Complete:</strong> All 57 target jobs have been fully aligned, verified with zero hallucinations against verified Fact IDs, generated in both clean <code>resume.docx</code> and change-highlighted <code>resume_REVIEW.docx</code>, and pushed to the Google Sheets tracker with 100% unique, role-tailored recruiter outreach messages and Boolean search queries.
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <h3 style="margin-bottom: 10px; color: var(--accent-blue); font-size: 1.05rem;">Critical Project Rules (Active & Enforced)</h3>
+            <ul>
+              <li><strong>0% Hallucination Gate:</strong> Every single bullet, metric, tool, and scope must cite verified persistent Fact IDs from <code>inputs/facts.yaml</code>. No ungrounded claims.</li>
+              <li><strong>15-Year Ageism Screening Gate:</strong> Professional experience strictly omits chronological roles ending prior to 2011. Only roles from 2011–Present are included (Stellarus, Blue Shield, Safeway, Independent Contractor).</li>
+              <li><strong>Education Hygiene:</strong> Graduation years strictly omitted from education entries.</li>
+              <li><strong>Contact Header Hygiene:</strong> Mobile phone number and email address only (no street/city address; no LinkedIn link).</li>
+              <li><strong>Leadership Competencies:</strong> All resumes reflect the 9 leadership skills from <code>inputs/directives.yaml</code>: <em>Team Building & Management, 24x7 Production Operations, Budgeting & FinOps Governance, Regulatory Compliance, AI Implementation & Agentic Workflows, Change Leadership, Cross-Functional Collaboration, Vendor Management, Contract Negotiation</em>.</li>
+              <li><strong>Typography Fidelity:</strong> Matching <code>inputs/SAMPLE_FORMAT.docx</code> exactly: 0.5" margins, 9pt Times New Roman, bold section headings with bottom borders, bold-labeled bullet prefixes.</li>
+              <li><strong>Google Sheets Sync Hygiene:</strong> Category search index URLs (e.g. <code>job-2061ebf1</code>) are marked <code>blocked</code> and strictly excluded from pushing to the user's active "Jobs" spreadsheet tab.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 style="margin-bottom: 10px; color: var(--accent-blue); font-size: 1.05rem;">Major Accomplishments Completed This Session</h3>
+            <ul>
+              <li><strong>Live Master Resume Synced:</strong> Parsed live HTML from <code>https://hsieh.org/resume/</code> into <code>inputs/facts.yaml</code> via <code>ledger.py</code>, integrating all newly added AI tools (<em>Gemini, Copilot / GitHub Copilot, OpenAI Codex, Ollama, OpenCode, Hermes, n8n, Python agents</em>).</li>
+              <li><strong>Batch 5 Full Alignment (17 Positions):</strong> Completed tailored configs in <code>src/resume_factory/alignments_batch5.py</code> covering Perplexity AI, Snout, Together AI, Franklin Templeton, Ring, AWS, and Amazon.</li>
+              <li><strong>Audit Warnings Cleared:</strong> Replaced pre-2011 roles (Moai, LucasArts, PG&E 2005) with Safeway and Independent Contractor (ended 2012/2013) to achieve 0 warnings and 100% test pass.</li>
+              <li><strong>Recruiter Outreach Matching Bug Fixed:</strong> Resolved company fallback bug in <code>src/resume_factory/sheets.py</code>. Verified that each of the 57 jobs has a distinct, customized outreach note (&lt;300 chars) and Boolean query in Google Sheets.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: ARCHITECTURE & KEY FILES -->
+    <section>
+      <h2 class="section-title">2. Architecture & Key Files Map</h2>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Component / File</th>
+              <th>Path</th>
+              <th>Function & Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>CLI Entrypoint</strong></td>
+              <td><code>./rf</code></td>
+              <td>Wrapper invoking Python inside <code>.devenv/state/venv/bin/python</code>.</td>
+            </tr>
+            <tr>
+              <td><strong>Fact Ledger</strong></td>
+              <td><code>inputs/facts.yaml</code></td>
+              <td>Single source of verified truth with persistent IDs (<code>fact_*</code>).</td>
+            </tr>
+            <tr>
+              <td><strong>Directives</strong></td>
+              <td><code>inputs/directives.yaml</code></td>
+              <td>User requirements: 15-year rule, leadership competencies, formatting gates.</td>
+            </tr>
+            <tr>
+              <td><strong>State Tracker</strong></td>
+              <td><code>output/tracker.json</code></td>
+              <td>Machine state for all 58 jobs (57 aligned, 1 blocked).</td>
+            </tr>
+            <tr>
+              <td><strong>Alignment Modules</strong></td>
+              <td><code>src/resume_factory/engine.py</code><br><code>alignments_batch2.py</code><br><code>alignments_batch3.py</code><br><code>alignments_batch4.py</code><br><code>alignments_batch5.py</code></td>
+              <td>Role-by-role tailoring configurations, headline/summary synthesis, bullet selection, cited Fact IDs, and disambiguation interview questions.</td>
+            </tr>
+            <tr>
+              <td><strong>DOCX Generator</strong></td>
+              <td><code>src/resume_factory/render_docx.py</code></td>
+              <td>Word document builder enforcing XML formatting from <code>SAMPLE_FORMAT.docx</code>.</td>
+            </tr>
+            <tr>
+              <td><strong>Sheets Webhook Sync</strong></td>
+              <td><code>src/resume_factory/sheets.py</code></td>
+              <td>Bi-directional sync with Google Sheet using webhook URL from <code>inputs/sheets_webhook.txt</code>.</td>
+            </tr>
+            <tr>
+              <td><strong>Recruiter Outreach Guide</strong></td>
+              <td><code>output/recruiter_introductions.md</code></td>
+              <td>Master document containing all 57 role-tailored outreach notes and Boolean queries.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 3: RESTART & RESUME COMMANDS -->
+    <section>
+      <h2 class="section-title">3. Command Cheatsheet for Next Session</h2>
+      <div class="card">
+        <p style="color: var(--text-secondary); margin-bottom: 12px;">When starting the next session, always run commands via <code>./rf</code> (or <code>.devenv/state/venv/bin/python</code>):</p>
+        
+        <pre><code># 1. Inspect current status of all 58 jobs
+./rf jobs list
+
+# 2. Check for any new jobs added by the user in Google Sheets
+./rf sheets sync
+
+# 3. Re-run alignment and verification across all jobs
+./rf jobs align
+
+# 4. Run the full pytest test suite
+.devenv/state/venv/bin/pytest tests/
+
+# 5. Pull latest master resume from https://hsieh.org/resume/ if updated
+./rf fetch-master</code></pre>
+      </div>
+    </section>
+
+    <!-- SECTION 4: FULL INVENTORY OF 57 ALIGNED JOBS -->
+    <section>
+      <h2 class="section-title">4. Aligned Positions Inventory (57 Roles)</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Company</th>
+              <th>Role Title</th>
+              <th>Job ID</th>
+              <th>Status</th>
+              <th>Generated Output Artifacts</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>01</td><td>Thatch</td><td>Software Engineer, Full Stack</td><td><code>job-b02da6b6</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-b02da6b6_thatch_full_stack/resume.docx</code></td></tr>
+            <tr><td>02</td><td>Thatch</td><td>Software Engineer, Backend</td><td><code>job-df01ffd9</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-df01ffd9_thatch_backend/resume.docx</code></td></tr>
+            <tr><td>03</td><td>Apple</td><td>ASE Compute - Software Engineering Manager</td><td><code>job-83b3ca84</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-83b3ca84_apple_ase_compute_sem/resume.docx</code></td></tr>
+            <tr><td>04</td><td>Together AI</td><td>AI / Systems Engineer</td><td><code>job-5c794adc</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-5c794adc_together_ai_systems_eng/resume.docx</code></td></tr>
+            <tr><td>05</td><td>Sutter Health</td><td>Manager - Artificial Intelligence Governance</td><td><code>job-47fcc63b</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-47fcc63b_sutter_mgr_ai_governance/resume.docx</code></td></tr>
+            <tr><td>06</td><td>Apple</td><td>Senior Creative Gameplay Engineer, Apple Arcade</td><td><code>job-1d4f5ad3</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-1d4f5ad3_apple_arcade_gameplay_eng/resume.docx</code></td></tr>
+            <tr><td>07</td><td>Apple</td><td>Engineering Project Manager, Developer Publications</td><td><code>job-9e36c08d</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-9e36c08d_apple_epm_dev_pubs/resume.docx</code></td></tr>
+            <tr><td>08</td><td>Apple</td><td>Sr. Software Engineer (Java Middleware), eBusiness Services</td><td><code>job-1e90321e</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-1e90321e_apple_java_middleware_ebusiness/resume.docx</code></td></tr>
+            <tr><td>09</td><td>Activision Blizzard</td><td>Principal Software Engineer - Xbox Media</td><td><code>job-f044578f</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-f044578f_xbox_media_principal_se/resume.docx</code></td></tr>
+            <tr><td>10</td><td>Kaiser Permanente</td><td>Principal Project Management Consultant</td><td><code>job-378a371f</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-378a371f_kp_principal_pm_consultant/resume.docx</code></td></tr>
+            <tr><td>11</td><td>Kaiser Permanente</td><td>Healthcare Technology Solutions Architect</td><td><code>job-cf9d844a</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-cf9d844a_kp_solutions_architect/resume.docx</code></td></tr>
+            <tr><td>12</td><td>Kaiser Permanente</td><td>Healthcare Technology Product Manager</td><td><code>job-ecb88314</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-ecb88314_kp_product_manager/resume.docx</code></td></tr>
+            <tr><td>13</td><td>Adyen</td><td>Developer Relations Engineer</td><td><code>job-d9e1afd6</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-d9e1afd6_adyen_devrel_engineer/resume.docx</code></td></tr>
+            <tr><td>14</td><td>Adyen</td><td>Implementation Engineer</td><td><code>job-6be1d282</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-6be1d282_adyen_implementation_engineer/resume.docx</code></td></tr>
+            <tr><td>15</td><td>Adyen</td><td>Engineering Manager, Capital</td><td><code>job-0ed1b63d</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-0ed1b63d_adyen_em_capital/resume.docx</code></td></tr>
+            <tr><td>16</td><td>Adyen</td><td>Senior Software Engineer - Customer Interfaces</td><td><code>job-498bec76</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-498bec76_adyen_sr_se_customer_interfaces/resume.docx</code></td></tr>
+            <tr><td>17</td><td>Adyen</td><td>Software Engineer II (Frontend) - Observability</td><td><code>job-2383c61f</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-2383c61f_adyen_se2_observability/resume.docx</code></td></tr>
+            <tr><td>18</td><td>Adyen</td><td>Staff Engineer - Customer Interfaces</td><td><code>job-e40fbd4d</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-e40fbd4d_adyen_staff_eng_customer_interfaces/resume.docx</code></td></tr>
+            <tr><td>19</td><td>Bunkerhill Health</td><td>Forward Deployed Engineer</td><td><code>job-9bc0e009</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-9bc0e009_bunkerhill_fde/resume.docx</code></td></tr>
+            <tr><td>20</td><td>Nova Credit</td><td>Senior Software Engineer</td><td><code>job-fddf259b</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-fddf259b_nova_credit_sr_se/resume.docx</code></td></tr>
+            <tr><td>21</td><td>NextPatient</td><td>Staff Software Engineer</td><td><code>job-2f90931c</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-2f90931c_nextpatient_staff_se/resume.docx</code></td></tr>
+            <tr><td>22</td><td>NextPatient</td><td>Senior Software Engineer</td><td><code>job-9f62a988</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-9f62a988_nextpatient_sr_se/resume.docx</code></td></tr>
+            <tr><td>23</td><td>Snowflake</td><td>Staff Product Manager, Enterprise Technology</td><td><code>job-14d955e4</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-14d955e4_snowflake_staff_pm/resume.docx</code></td></tr>
+            <tr><td>24</td><td>Snowflake</td><td>Principal Program Manager - Migrations</td><td><code>job-018e6fc1</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-018e6fc1_snowflake_principal_pm_migrations/resume.docx</code></td></tr>
+            <tr><td>25</td><td>Zoox</td><td>Senior Manager, Software Tools Development</td><td><code>job-df12660d</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-df12660d_zoox_sr_mgr_software_tools/resume.docx</code></td></tr>
+            <tr><td>26</td><td>Zoox</td><td>Manager, Service Operations Systems</td><td><code>job-32f81e3e</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-32f81e3e_zoox_mgr_service_ops/resume.docx</code></td></tr>
+            <tr><td>27</td><td>Zoox</td><td>Technical Program Manager - Product Software</td><td><code>job-7f54c878</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-7f54c878_zoox_tpm_product_software/resume.docx</code></td></tr>
+            <tr><td>28</td><td>Zoox</td><td>Senior/Staff Design Project Manager, Places & Build</td><td><code>job-3a96f885</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-3a96f885_zoox_design_pm_places_build/resume.docx</code></td></tr>
+            <tr><td>29</td><td>Zoox</td><td>Manager, Enterprise Applications</td><td><code>job-6eb18c4c</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-6eb18c4c_zoox_mgr_enterprise_apps/resume.docx</code></td></tr>
+            <tr><td>30</td><td>Samsara</td><td>Sr. Software Engineer II, DevEx</td><td><code>job-fb1095fc</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-fb1095fc_samsara_sr_se2_devex/resume.docx</code></td></tr>
+            <tr><td>31</td><td>Blue Shield of CA</td><td>Director, Product Management, Personalization</td><td><code>job-0be9317c</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-0be9317c_bsc_dir_pm_personalization/resume.docx</code></td></tr>
+            <tr><td>32</td><td>Perplexity AI</td><td>Engineering Manager (API Platform)</td><td><code>job-a2ea5040</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-a2ea5040_perplexity_em_api_platform/resume.docx</code></td></tr>
+            <tr><td>33</td><td>Perplexity AI</td><td>Product Manager (Builder)</td><td><code>job-453e57ff</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-453e57ff_perplexity_pm_builder/resume.docx</code></td></tr>
+            <tr><td>34</td><td>Perplexity AI</td><td>MTS (Software Engineer, Computer)</td><td><code>job-d77f7aaf</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-d77f7aaf_perplexity_mts_computer/resume.docx</code></td></tr>
+            <tr><td>35</td><td>Perplexity AI</td><td>MTS (Software Engineer, Design System)</td><td><code>job-0187aa6c</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-0187aa6c_perplexity_mts_design_system/resume.docx</code></td></tr>
+            <tr><td>36</td><td>Perplexity AI</td><td>MTS (Software Engineer, Backend Platform)</td><td><code>job-f3023a93</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-f3023a93_perplexity_mts_backend_platform/resume.docx</code></td></tr>
+            <tr><td>37</td><td>Perplexity AI</td><td>MTS (Software Engineer, API Platform)</td><td><code>job-c38db86a</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-c38db86a_perplexity_mts_api_platform/resume.docx</code></td></tr>
+            <tr><td>38</td><td>Perplexity AI</td><td>MTS (Software Engineer, Integrations)</td><td><code>job-200d1cb6</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-200d1cb6_perplexity_mts_integrations/resume.docx</code></td></tr>
+            <tr><td>39</td><td>Perplexity AI</td><td>Product Manager, Core Experience</td><td><code>job-69fc7954</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-69fc7954_perplexity_pm_core_experience/resume.docx</code></td></tr>
+            <tr><td>40</td><td>Perplexity AI</td><td>MTS (General SE, Infrastructure)</td><td><code>job-f9c7d501</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-f9c7d501_perplexity_mts_infrastructure/resume.docx</code></td></tr>
+            <tr><td>41</td><td>Perplexity AI</td><td>Engineering Manager (Enterprise)</td><td><code>job-c8ae8308</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-c8ae8308_perplexity_em_enterprise/resume.docx</code></td></tr>
+            <tr><td>42</td><td>Snout</td><td>Principal Software Engineer</td><td><code>job-ed329a2a</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-ed329a2a_snout_principal_se/resume.docx</code></td></tr>
+            <tr><td>43</td><td>Together AI</td><td>Senior Software Engineer, Customer Insights</td><td><code>job-69f8cb02</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-69f8cb02_together_sr_se_customer_insights/resume.docx</code></td></tr>
+            <tr><td>44</td><td>Together AI</td><td>Solutions Architect</td><td><code>job-a0d42b13</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-a0d42b13_together_solutions_architect/resume.docx</code></td></tr>
+            <tr><td>45</td><td>Together AI</td><td>Senior Backend Engineer, Inference Platform</td><td><code>job-769b6b46</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-769b6b46_together_sr_backend_inference/resume.docx</code></td></tr>
+            <tr><td>46</td><td>Together AI</td><td>Senior Product Engineer, Fullstack</td><td><code>job-d7eddd46</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-d7eddd46_together_sr_product_eng_fullstack/resume.docx</code></td></tr>
+            <tr><td>47</td><td>Together AI</td><td>Senior Product Engineer</td><td><code>job-87ee584c</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-87ee584c_together_sr_product_engineer/resume.docx</code></td></tr>
+            <tr><td>48</td><td>Franklin Templeton</td><td>FTI Lead System Analyst</td><td><code>job-c711e11c</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-c711e11c_franklin_templeton_lead_sys_analyst/resume.docx</code></td></tr>
+            <tr><td>49</td><td>Franklin Templeton</td><td>Client Success Manager</td><td><code>job-c4be9bb5</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-c4be9bb5_franklin_templeton_client_success_mgr/resume.docx</code></td></tr>
+            <tr><td>50</td><td>Franklin Templeton</td><td>Head of AI Community</td><td><code>job-7f9d8d3e</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-7f9d8d3e_franklin_templeton_head_of_ai_community/resume.docx</code></td></tr>
+            <tr><td>51</td><td>Franklin Templeton</td><td>AI/ML Lead Engineer</td><td><code>job-5325e35d</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-5325e35d_franklin_templeton_ai_ml_lead/resume.docx</code></td></tr>
+            <tr><td>52</td><td>Amazon / Ring</td><td>Senior Product Manager, Builder - Tech</td><td><code>job-f97df981</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-f97df981_ring_sr_pm_t_builder/resume.docx</code></td></tr>
+            <tr><td>53</td><td>Amazon / AWS</td><td>Senior AI Acceleration Lead, Customer Success COE</td><td><code>job-ae23ccef</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-ae23ccef_aws_sr_ai_acceleration_lead/resume.docx</code></td></tr>
+            <tr><td>54</td><td>Amazon / AWS</td><td>Customer Solutions Manager, Media & Entertainment</td><td><code>job-3ca6b741</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-3ca6b741_aws_csm_media_entertainment/resume.docx</code></td></tr>
+            <tr><td>55</td><td>Amazon / AWS</td><td>Sr. Customer Solutions Manager, ISV & Private Equity</td><td><code>job-83cfc9b8</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-83cfc9b8_aws_csm_isv_pe/resume.docx</code></td></tr>
+            <tr><td>56</td><td>Amazon / AWS</td><td>Sr. PM-T, Customer Success Intelligence Team</td><td><code>job-153e4a94</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-153e4a94_aws_sr_pm_t_cs_intelligence/resume.docx</code></td></tr>
+            <tr><td>57</td><td>Amazon</td><td>Principal PM-T, Growth, Outbound Communications</td><td><code>job-9153eb57</code></td><td><span class="badge badge-success">Aligned</span></td><td><code>output/job-9153eb57_amazon_principal_pm_t_growth/resume.docx</code></td></tr>
+            <tr style="opacity: 0.6; background: rgba(0,0,0,0.2);">
+              <td>—</td><td>Amazon</td><td>Category Search Index (Search Page)</td><td><code>job-2061ebf1</code></td><td><span class="badge badge-warning">Blocked</span></td><td><em>Omitted from sheet & resumes</em></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 5: RECOMMENDED NEXT STEPS -->
+    <section>
+      <h2 class="section-title">5. Next Steps for Next Session</h2>
+      <div class="card">
+        <div class="next-step-item">
+          <div class="step-number">1</div>
+          <div>
+            <strong>Review Google Sheets Tracker:</strong> Verify the updated "Jobs" tab in Google Sheets. All 57 positions display live status, company, title, clean resume file paths, customized recruiter intro messages, and Boolean LinkedIn search queries.
+          </div>
+        </div>
+
+        <div class="next-step-item">
+          <div class="step-number">2</div>
+          <div>
+            <strong>Ingest Any Newly Added Jobs:</strong> If you paste new job postings into your Google Sheet, run <code>./rf sheets sync</code> to discover them automatically in the tracker.
+          </div>
+        </div>
+
+        <div class="next-step-item">
+          <div class="step-number">3</div>
+          <div>
+            <strong>Deploy Recruiter Outreach:</strong> Utilize the ready-to-send messages from <code>output/recruiter_introductions.md</code> or your Google Sheet. Each message is under 300 characters for LinkedIn connection requests with targeted Boolean queries to locate the exact recruiter or hiring manager.
+          </div>
+        </div>
+
+        <div class="next-step-item">
+          <div class="step-number">4</div>
+          <div>
+            <strong>Interview Preparation Review:</strong> Review the targeted clarifying questions generated in each role's <code>questions.md</code> file (e.g. <code>output/job-c8ae8308_perplexity_em_enterprise/questions.md</code>) to prepare high-impact talking points for preliminary screen calls.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      Generated automatically by Antigravity IDE • Workspace: <code>/home/thsieh/_Projects/resume-aligner</code>
+    </div>
+
+  </div>
+</body>
+</html>
