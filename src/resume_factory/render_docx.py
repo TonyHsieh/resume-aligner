@@ -25,6 +25,18 @@ BULLET_NUM_ID = 1  # numbering definition used for bullets in the sample
 DEFAULT_TEMPLATE = Path(__file__).resolve().parents[2] / "SAMPLE_FORMAT.docx"
 
 
+def _get_plain_text_style_id() -> str:
+    try:
+        import docx
+        doc = docx.Document(str(DEFAULT_TEMPLATE))
+        return doc.styles["Plain Text"].style_id
+    except Exception:
+        return "764"
+
+
+PLAIN_TEXT_STYLE_ID = _get_plain_text_style_id()
+
+
 def _rpr(bold: bool, italic: bool, size: int) -> str:
     return (
         "<w:rPr>"
@@ -63,7 +75,7 @@ def _para(
     mark_italic: bool = False,
     mark_size: int | None = None,
 ):
-    ppr = '<w:pStyle w:val="PlainText"/>'
+    ppr = f'<w:pStyle w:val="{PLAIN_TEXT_STYLE_ID}"/>'
     if bullet:
         ppr += f'<w:numPr><w:ilvl w:val="0"/><w:numId w:val="{BULLET_NUM_ID}"/></w:numPr>'
     if border:
@@ -72,6 +84,8 @@ def _para(
         ppr += f'<w:jc w:val="{jc}"/>'
     if mark_size is not None:
         ppr += _rpr(mark_bold, mark_italic, mark_size)
+    elif not runs:
+        ppr += "<w:rPr/>"
     xml = f"<w:p {nsdecls('w')}><w:pPr>{ppr}</w:pPr>{runs}</w:p>"
     return parse_xml(xml)
 
@@ -125,6 +139,14 @@ def build_body(resume: Resume, review: bool = False) -> list:
     for role in resume.roles:
         body.append(_role_header(role, review))
         body.extend(_labeled(b, review, bullet=True) for b in role.bullets)
+        body.append(_blank())
+    if resume.additional_roles:
+        body.append(_blank())
+        body.append(_heading("ADDITIONAL WORK EXPERIENCE"))
+        for role in resume.additional_roles:
+            body.append(_role_header(role, review))
+            body.extend(_labeled(b, review, bullet=True) for b in role.bullets)
+            body.append(_blank())
         body.append(_blank())
     body.append(_heading("EDUCATION"))
     body.extend(_labeled(e, review) for e in resume.education)

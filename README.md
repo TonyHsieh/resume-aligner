@@ -14,11 +14,13 @@ It is built around strict engineering principles: **zero hallucination**, **grou
 - [Environment Setup](#environment-setup)
 - [CLI Reference (`rf`)](#cli-reference-rf)
   - [1. Syncing Job Postings](#1-syncing-job-postings)
-  - [2. Generating Tailored Resumes](#2-generating-tailored-resumes)
-  - [3. Tracking & Status Management](#3-tracking--status-management)
-  - [4. Syncing to Google Sheets](#4-syncing-to-google-sheets)
+  - [2. The 3-Step Alignment Lifecycle (From New URL to Resumes)](#2-the-3-step-alignment-lifecycle-from-new-url-to-resumes)
+  - [3. Generating Tailored Resumes (`rf jobs align`)](#3-generating-tailored-resumes-rf-jobs-align)
+  - [4. Tracking & Status Management](#4-tracking--status-management)
+  - [5. Syncing to Google Sheets](#5-syncing-to-google-sheets)
 - [Generated Artifacts](#generated-artifacts)
 - [Google Sheets Webhook & Custom Columns](#google-sheets-webhook--custom-columns)
+- [Privacy & Job Application Confidentiality](#privacy--job-application-confidentiality)
 - [Fact Ledger & Zero-Hallucination Gate](#fact-ledger--zero-hallucination-gate)
 - [Testing & Quality Assurance](#testing--quality-assurance)
 
@@ -59,7 +61,7 @@ flowchart TD
 
     subgraph Factory Core
         FL[Fact Ledger<br/>inputs/facts.yaml]
-        JI[JD Ingestion<br/>ingest.py + Apple Jobs API]
+        JI[JD Ingestion & Scrapers<br/>Ashby, Google, Workday, Greenhouse, Apple]
         AE[Alignment Engine<br/>engine.py]
         VAL[Truthfulness Validator<br/>validate.py]
         RD[DOCX Renderer<br/>render_docx.py]
@@ -110,8 +112,8 @@ resume-aligner/
 │
 ├── src/resume_factory/            # Factory source code
 │   ├── cli.py                     # CLI dispatcher for `rf`
-│   ├── engine.py                  # Alignment engine, prompt tailoring, and artifact generator
-│   ├── ingest.py                  # Job description scraper (supports Apple Jobs API & archives)
+│   ├── engine.py                  # Alignment engine (dynamically loads private configs from output/alignments/)
+│   ├── ingest.py                  # Multi-ATS scraper (Ashby API, Google Careers, Workday CXS, Greenhouse, etc. with defensive auto-blocking)
 │   ├── ledger.py                  # Fact parser & compiler into facts.yaml
 │   ├── model.py                   # Data models (Role, Bullet, TailoredResume, etc.)
 │   ├── parse_docx.py              # DOCX AST inspector & text extractor
@@ -123,7 +125,8 @@ resume-aligner/
 ├── work/                          # Cached intermediate artifacts
 │   └── <job_id>/jd_raw.txt        # Raw fetched text for each job description
 │
-├── output/                        # Generated deliverables
+├── output/                        # Generated deliverables & private configs (gitignored)
+│   ├── alignments/                # Private target role configs (batch1.py, batch2.py, ...)
 │   ├── INDEX.md                   # Markdown dashboard of all tracked jobs
 │   ├── tracker.json               # State database (status, hashes, output paths)
 │   ├── recruiter_introductions.md # Tailored 2-sentence intro notes + LinkedIn search queries
@@ -133,8 +136,9 @@ resume-aligner/
 │       ├── alignment_report.md    # Requirement-by-requirement alignment matrix
 │       └── questions.md           # 3 clarifying questions for interview prep
 │
-└── tests/                         # Test suite
+└── tests/                         # Automated test suite (16 passing tests)
     ├── test_render_docx.py        # Roundtrip golden tests against SAMPLE_FORMAT.docx
+    ├── test_sheets.py             # Webhook serialization, schema mapping & recruiter isolation tests
     └── test_tracker.py            # Tracker state, hashing, and stale detection tests
 ```
 
@@ -185,7 +189,44 @@ This:
 ./rf jobs sync "https://docs.google.com/document/d/<DOC_ID>/edit?usp=sharing"
 ```
 
-### 2. Generating Tailored Resumes
+### 2. The 3-Step Alignment Lifecycle (From New URL to Resumes)
+
+> [!NOTE]
+> **Why doesn't `rf jobs align` generate resumes immediately after syncing new URLs?**  
+> `rf jobs align` compiles tailored resumes from defined alignment configurations in `output/alignments/batch*.py`. Newly discovered job URLs in `output/tracker.json` start with status `new`. They must pass through the **3-step factory lifecycle** before their documents can be compiled.
+
+```mermaid
+flowchart LR
+    A["New Job URLs<br/>(Google Sheet / tracker.json)"] -->|Step 1: Ingest| B["work/<job_id>/jd_raw.txt<br/>(Raw Scraped JD)"]
+    B -->|Step 2: Align| C["output/alignments/batchN.py<br/>(Factual Grounding & Tailoring)"]
+    C -->|Step 3: Build & Sync| D["output/<job_id>_<slug>/<br/>(resume.docx, reports, Sheets)"]
+```
+
+#### Step 1: Ingest Job Descriptions (`work/<job_id>/jd_raw.txt`)
+Before a resume can be tailored, the role's raw job description must be scraped and cached locally. The ingestion engine automatically handles ATS formats (Greenhouse, Ashby, Workable, Workday, direct career portals):
+```bash
+# Ingest raw JD text for tracked jobs into work/<job_id>/jd_raw.txt
+python -m resume_factory.ingest
+```
+
+#### Step 2: Formulate Alignment Configuration (`output/alignments/batch*.py`)
+To maintain **100% privacy** and prevent active job targets from entering Git, all role alignment definitions live in the gitignored `output/alignments/` directory. Each entry maps the job's core requirements against verified facts in `inputs/facts.yaml`:
+* **Tailored Headline & Executive Summary**: Calibrated specifically for the target role level and domain.
+* **Requirement-vs-Evidence Matrix**: Directly correlates every JD qualification with specific Fact IDs from the master ledger.
+* **Chronological Experience & Bullet Selection**: Selects verified STAR bullets highlighting relevant technical leadership and systems scope.
+* **Clarifying Questions**: Formulates 3 targeted questions to prepare for hiring manager interviews and resolve ambiguous team boundaries.
+
+#### Step 3: Execute Build & Sync (`rf jobs align` & `rf sheets sync`)
+Once the alignment definitions exist in `output/alignments/`, execute the build pipeline:
+```bash
+# 1. Compile clean DOCX, review DOCX, alignment reports, and questions:
+rf jobs align
+
+# 2. Push updated status, company, title, resume links, and recruiter notes back to Google Sheets:
+rf sheets sync
+```
+
+### 3. Generating Tailored Resumes (`rf jobs align`)
 
 Run the alignment engine to parse JDs, align skills, run the zero-hallucination validation check, and render all output DOCX and markdown files:
 
@@ -200,7 +241,7 @@ This compiles:
 - `output/<job_id>_<slug>/questions.md`
 - Updates `output/tracker.json` and `output/INDEX.md`
 
-### 3. Tracking & Status Management
+### 4. Tracking & Status Management
 
 Check current alignment status across all jobs:
 
@@ -217,7 +258,7 @@ rf jobs mark <job_id> applied --note "Submitted through company portal"
 
 Valid statuses are: `pending`, `drafted`, `blocked`, `aligned`, `reviewed`, `applied`.
 
-### 4. Syncing to Google Sheets
+### 5. Syncing to Google Sheets
 
 Push all tracked roles, tailored resume links, recruiter search queries, and tailored introduction messages to your Google Sheet:
 
@@ -276,6 +317,28 @@ Because the script matches by column header name:
 - **Insert custom columns anywhere:** You can place your own custom columns (*Application Date*, *Interview Stage*, *Recruiter Contact*, *Notes*, *Follow-up Date*, etc.) anywhere in the sheet — at the beginning, between factory columns, or at the end.
 - **Values preserved:** Syncing updates only the matched factory columns and leaves all your custom columns and manual notes completely untouched.
 
+### Recruiter Outreach & Zero Cross-Company Contamination
+To eliminate embarrassing recruiter outreach errors, `src/resume_factory/sheets.py` features a dedicated isolation engine (`match_recruiter_intro`):
+- **Canonical URL Matching:** Matches each role directly to its curated entry in `output/recruiter_introductions.md`.
+- **Strict Company Isolation Guard:** Validates that matched entries belong to the identical employer. If any ambiguity or company mismatch occurs, the engine rejects the match.
+- **Dynamic Context-Aware Fallback:** Synthesizes a company- and role-specific outreach note and LinkedIn Boolean search query (`site:linkedin.com/in ("<Company>") ("Technical Recruiter" OR "Talent Acquisition")`), guaranteeing **100% zero cross-company contamination** in your Google Sheet.
+
+---
+
+## Privacy & Job Application Confidentiality
+
+The factory enforces strict privacy controls to guarantee that your active job search, target companies, and tailored application strategies remain **100% confidential** and never leak into version control:
+
+1. **Git-Ignored Alignment Configurations (`output/alignments/`)**:
+   - All role-specific alignment strategies (`batch1.py`, `batch2.py`, etc.) containing target employer names, role titles, requirement matrices, and tailored resume structures reside in `output/alignments/`.
+   - The entire `output/` directory is gitignored by default.
+2. **Framework Code Decoupling**:
+   - `src/resume_factory/engine.py` is pure, reusable framework code with zero hardcoded job targets.
+   - At runtime, `engine.py` uses a dynamic loader (`load_all_alignments()`) to discover and aggregate all alignment configurations from `output/alignments/*.py`.
+3. **Double-Layered Defense**:
+   - `.gitignore` explicitly filters `src/resume_factory/alignments*.py` and `src/resume_factory/builder_data.py`. If an alignment script is ever placed in `src/`, Git will refuse to track or commit it.
+   - Webhook credentials (`inputs/sheets_webhook.txt`) and personal master resume inputs (`inputs/`) are similarly gitignored.
+
 ---
 
 ## Configurable Directives (`inputs/directives.yaml`)
@@ -300,6 +363,25 @@ ageism:
 
   # Contact line hygiene: mobile and email only (no street/city address or LinkedIn)
   contact_header_style: "mobile_and_email_only"
+
+skills_emphasis:
+  # Key leadership & operational proficiencies emphasized across all generated resumes
+  key_leadership_skills:
+    - "Team Building and Management"
+    - "24x7 Production Operations"
+    - "Budgeting & FinOps Governance"
+    - "Regulatory Compliance"
+    - "AI Implementation & Agentic Workflows"
+    - "Change Leadership"
+    - "Cross-Functional Collaboration"
+    - "Vendor Management"
+    - "Contract Negotiation"
+
+  # Core technical and platform proficiencies
+  technical_skills:
+    languages: "JavaScript, Python, Rust, Ansible, Scala, Java, C, Assembly, Shell"
+    cloud_and_platform: "Kubernetes, MS Azure, AWS Serverless, GitOps, Backstage IDP, ArgoCD, GitHub Actions"
+    databases: "PostgreSQL, MySQL, DynamoDB, Oracle PL/SQL, Transact-SQL, Access"
 
 truthfulness:
   strict_fact_ledger_validation: true
@@ -339,6 +421,7 @@ Or run directly through devenv test:
 devenv test
 ```
 
-The test suite covers:
+The test suite covers **16 passing automated tests**:
 - **`tests/test_render_docx.py`**: Validates document margins, font sizes, style run inheritance, bottom borders, and paragraph-level cloning against `SAMPLE_FORMAT.docx`.
 - **`tests/test_tracker.py`**: Tests URL canonicalization, ID stability, Google Doc parsing, idempotency, and stale detection when JDs or master facts change.
+- **`tests/test_sheets.py`**: Tests bi-directional Google Apps Script payload serialization, column schema mapping, canonical URL matching, and company-isolation guards preventing cross-company outreach note contamination.

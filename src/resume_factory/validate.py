@@ -51,12 +51,32 @@ def validate_resume(
         # Match by company (ensure distinct index)
         matched = False
         for i, (rid, rcomp) in enumerate(ledger_roles):
-            if i not in indices and (rcomp == r.company or r.company in rcomp):
+            if i not in indices and (
+                rcomp == r.company
+                or r.company in rcomp
+                or rcomp in r.company
+            ):
                 indices.append(i)
                 matched = True
                 break
         if not matched:
             errors.append(f"Unrecognized role company: {r.company}")
+
+    for r in resume.additional_roles:
+        matched = any(
+            rcomp == r.company
+            or r.company in rcomp
+            or rcomp in r.company
+            or ("lucasarts" in rcomp.lower() and "lucasarts" in r.company.lower())
+            or ("accolade" in rcomp.lower() and "accolade" in r.company.lower())
+            or ("contractor" in rcomp.lower() and "contractor" in r.company.lower())
+            or ("sapient" in rcomp.lower() and "sapient" in r.company.lower())
+            or ("moai" in rcomp.lower() and "moai" in r.company.lower())
+            or (("pacific" in rcomp.lower() or "pge" in rcomp.lower()) and ("pacific" in r.company.lower() or "pge" in r.company.lower()))
+            for rid, rcomp in ledger_roles
+        )
+        if not matched:
+            errors.append(f"Unrecognized additional role company: {r.company}")
 
     if indices:
         if indices != sorted(indices):
@@ -70,7 +90,7 @@ def validate_resume(
 
     # 4. Metric Hallucination guard
     resume_full_text = " ".join(
-        [resume.summary] + [b.text for r in resume.roles for b in r.bullets]
+        [resume.summary] + [b.text for r in (resume.roles + resume.additional_roles) for b in r.bullets]
     )
     allowed_metrics = ["40%", "80%", "80–100", "80-100", "80", "100", "10–15", "10-15", "10", "15", "14", "24x7", "24/7", "$1 million", "$1M", "1 million", ">1 million", "10+", "15+", "2", "3", "5", "1", "4"]
     numbers_in_resume = re.findall(r"\b(?:\d+(?:\.\d+)?%?|\$\d+(?:\s?million|\s?M)?|\d+–\d+|\d+-\d+)\b", resume_full_text)

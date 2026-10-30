@@ -37,6 +37,7 @@ class Resume:
     summary: str
     expertise: list[str] = field(default_factory=list)
     roles: list[Role] = field(default_factory=list)
+    additional_roles: list[Role] = field(default_factory=list)
     education: list[Labeled] = field(default_factory=list)
     skills: list[Labeled] = field(default_factory=list)
 

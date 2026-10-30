@@ -32,6 +32,8 @@ def _runs(p: Paragraph) -> list[tuple[str, bool, bool, float | None]]:
     """Runs merged across fragments that share formatting."""
     merged: list[tuple[str, bool, bool, float | None]] = []
     for r in p.runs:
+        if not r.text:
+            continue
         size = r.font.size.pt if r.font.size else None
         key = (bool(r.bold), bool(r.italic), size)
         if merged and merged[-1][1:] == key:
@@ -94,6 +96,13 @@ def parse_docx(path: str | Path) -> Resume:
             elif text:
                 current = _role(p)
                 resume.roles.append(current)
+        elif section == "ADDITIONAL WORK EXPERIENCE":
+            if _is_bullet(p):
+                assert current is not None, "bullet before any role header"
+                current.bullets.append(_labeled(p))
+            elif text:
+                current = _role(p)
+                resume.additional_roles.append(current)
         elif section == "EDUCATION":
             if text:
                 resume.education.append(_labeled(p))
