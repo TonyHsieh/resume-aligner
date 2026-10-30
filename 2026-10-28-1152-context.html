@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Aligner Factory - Session Context (2026-10-28 11:52)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-card: #1e293b;
+      --bg-card-hover: #273549;
+      --border-color: #334155;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-blue: #38bdf8;
+      --accent-indigo: #818cf8;
+      --accent-emerald: #34d399;
+      --accent-amber: #fbbf24;
+      --accent-rose: #f43f5e;
+      --badge-success-bg: rgba(52, 211, 153, 0.15);
+      --badge-success-border: #34d399;
+      --badge-warning-bg: rgba(251, 191, 36, 0.15);
+      --badge-warning-border: #fbbf24;
+      --badge-danger-bg: rgba(244, 63, 94, 0.15);
+      --badge-danger-border: #f43f5e;
+      --badge-info-bg: rgba(56, 189, 248, 0.15);
+      --badge-info-border: #38bdf8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .session-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid var(--accent-blue);
+      color: var(--accent-blue);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .header-summary {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+      max-width: 950px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 18px 20px;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-blue);
+    }
+
+    .stat-number {
+      font-size: 2.2rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    section {
+      margin-bottom: 36px;
+    }
+
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title::before {
+      content: "";
+      display: inline-block;
+      width: 4px;
+      height: 18px;
+      background: var(--accent-blue);
+      border-radius: 2px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(15, 23, 42, 0.6);
+      color: var(--text-secondary);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      letter-spacing: 0.05em;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+      color: var(--text-primary);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background-color: var(--bg-card-hover);
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85em;
+      background: rgba(15, 23, 42, 0.7);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--accent-blue);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-success {
+      background: var(--badge-success-bg);
+      color: var(--accent-emerald);
+      border: 1px solid var(--badge-success-border);
+    }
+
+    .badge-warning {
+      background: var(--badge-warning-bg);
+      color: var(--accent-amber);
+      border: 1px solid var(--badge-warning-border);
+    }
+
+    .badge-info {
+      background: var(--badge-info-bg);
+      color: var(--accent-blue);
+      border: 1px solid var(--badge-info-border);
+    }
+
+    .badge-danger {
+      background: var(--badge-danger-bg);
+      color: var(--accent-rose);
+      border: 1px solid var(--badge-danger-border);
+    }
+
+    .step-box {
+      border-left: 3px solid var(--accent-blue);
+      padding: 12px 18px;
+      margin-bottom: 14px;
+      background: rgba(30, 41, 59, 0.5);
+      border-radius: 0 8px 8px 0;
+    }
+
+    .step-box strong {
+      color: var(--accent-blue);
+    }
+
+    ul {
+      margin-left: 20px;
+      margin-top: 8px;
+      color: var(--text-secondary);
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-top">
+        <h1>Resume Aligner Factory</h1>
+        <div class="session-badge">
+          <span>●</span> RESUME CONTEXT: 2026-10-28 11:52
+        </div>
+      </div>
+      <p class="header-summary">
+        Master session handoff artifact documenting the bi-directional Google Sheets sync and execution of the 3-step alignment lifecycle across 18 newly discovered target roles (6 Amazon/AWS, 2 Wing, 3 Google/YouTube, 5 Anthropic, 2 Affirm). All 18 roles successfully formulated in Batch 12, validated under zero-hallucination constraints against <code>inputs/facts.yaml</code>, compiled to dual DOCX and markdown deliverables across 165 total aligned resumes, synced back to Google Sheets, and fully verified with 16/16 unit tests passing.
+      </p>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number">179</div>
+          <div class="stat-label">Total Jobs Tracked</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" style="color: var(--accent-emerald);">165</div>
+          <div class="stat-label">Aligned Resumes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" style="color: var(--accent-rose);">14</div>
+          <div class="stat-label">Defensively Blocked</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" style="color: var(--accent-blue);">0</div>
+          <div class="stat-label">Pending / Unaligned</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" style="color: var(--accent-indigo);">16/16</div>
+          <div class="stat-label">Unit Tests Passing</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- SECTION 1: EXECUTION WORKFLOW -->
+    <section>
+      <h2 class="section-title">1. End-to-End Lifecycle Execution Highlights</h2>
+      <div class="card">
+        <div class="step-box">
+          <strong>Step 1: Google Sheets Discovery Sync (Pull)</strong>
+          <p style="color: var(--text-secondary); margin-top: 4px;">
+            Executed <code>./rf sheets sync</code>. Discovered 16 initial new job URLs from the Google Sheet, plus 2 subsequent Affirm positions during roundtrip push sync (18 new roles total), importing them into <code>output/tracker.json</code>.
+          </p>
+        </div>
+
+        <div class="step-box">
+          <strong>Step 2: Multi-ATS Ingestion (`resume_factory.ingest`)</strong>
+          <p style="color: var(--text-secondary); margin-top: 4px;">
+            Ran <code>python -m resume_factory.ingest</code> across all 18 roles:
+          </p>
+          <ul>
+            <li>6 Amazon / AWS positions via direct web scraping (Principal SAs, Strategic Accounts, Azure compete, Prototyping AI Customer Engineering PACE, Games TMEGS).</li>
+            <li>2 Wing positions (Alphabet) via Greenhouse API (Staff TPM NPI, Staff Product Manager Commerce).</li>
+            <li>3 Google / YouTube positions via deep JSON extraction (Senior PM Creator Earnings, PM II Search, Senior Manager Product Lead Business Tech).</li>
+            <li>5 Anthropic positions via Greenhouse boards API (PM Technical Support Experience, Support Engineer, TPM API Platform, TPM Enterprise Commerce, TPM Infrastructure).</li>
+            <li>2 Affirm positions via Greenhouse boards API (Staff TPM Engineering Onboarding, Senior TPM Planning &amp; Operations).</li>
+          </ul>
+        </div>
+
+        <div class="step-box">
+          <strong>Step 3: Batch 12 Formulation (`output/alignments/batch12.py`)</strong>
+          <p style="color: var(--text-secondary); margin-top: 4px;">
+            Authored private alignment configuration <code>output/alignments/batch12.py</code> covering all 18 active roles:
+          </p>
+          <ul>
+            <li>Anchored 100% of claims to verified Fact IDs in <code>inputs/facts.yaml</code> (0% hallucination).</li>
+            <li>Enforced authentic heritage: highlighted LucasArts and Accolade commercial game systems for Amazon Games SA, and the standard modern 15-year enterprise chronology for all other 17 roles.</li>
+            <li>Calibrated core leadership competencies: <em>AI Implementation &amp; Agentic Workflows</em>, <em>Change Leadership</em>, <em>Cross-Functional Collaboration</em>, <em>Team Building &amp; Management</em>, <em>24x7 Production Operations</em>, <em>Budgeting &amp; FinOps Governance</em>.</li>
+            <li>Constructed 4-point requirement-vs-evidence matrices in <code>alignment_report.md</code> and 3 strategic clarifying questions per role in <code>questions.md</code>.</li>
+          </ul>
+        </div>
+
+        <div class="step-box">
+          <strong>Step 4: Factory Build &amp; Zero-Hallucination Validation (`rf jobs align`)</strong>
+          <p style="color: var(--text-secondary); margin-top: 4px;">
+            Executed <code>./rf jobs align</code>. All 165 active positions passed deterministic validation. Emitted clean DOCX, review DOCX, alignment reports, and interview questions for all roles, updating <code>output/tracker.json</code> and <code>output/INDEX.md</code>.
+          </p>
+        </div>
+
+        <div class="step-box">
+          <strong>Step 5: Bi-Directional Google Sheets Push Sync (`rf sheets sync`)</strong>
+          <p style="color: var(--text-secondary); margin-top: 4px;">
+            Pushed all 165 aligned roles to the Google Sheet via Apps Script webhook, updating statuses, company names, titles, and tailored resume file paths. Verified clean 16/16 passing test suite.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: BATCH 12 ROLES -->
+    <section>
+      <h2 class="section-title">2. Batch 12 Alignments (18 Roles Built &amp; Synced)</h2>
+      <div class="card" style="padding: 0; overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Job ID</th>
+              <th>Company</th>
+              <th>Role Title</th>
+              <th>Archetype / Strategy</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>job-c2cbc3fd</code></td>
+              <td><strong>Amazon</strong></td>
+              <td>Principal Solutions Architect</td>
+              <td>Startup SA / Scalable Mechanisms &amp; Enablement / Serverless &amp; K8s</td>
+              <td><span class="badge badge-success">Aligned</span></td>
+            </tr>
+            <tr>
+              <td><code>job-450c77bb</code></td>
+              <td><strong>Amazon</strong></td>
+              <td>Senior Solutions Architect, Games, TMEGS</td>
+              <td>Cloud Gaming Architecture / Game Server Scaling / LucasArts Heritage</td>
+              <td><span class="badge badge-success">Aligned</span></td>
+            </tr>
+            <tr>
+              <td><code>job-95741e40</code></td>
+              <td><strong>Amazon AWS</strong></td>
+              <td>Principal Solutions Architect, Strategic Accounts</td>
+              <td>Strategic Accounts / Accelerated Computing &amp; Containers / CxO Advisory</td>
+              <td><span class="badge badge-success">Aligned</span></td>
+            </tr>
+            <tr>
+              <td><code>job-0c6c7044</code></td>
+              <td><strong>Amazon</strong></td>
+              <td>Senior Solutions Architect - Azure/Emerging Tech, Cloud Intelligence</td>
+              <td>Azure Deep Expertise / Multi-Cloud Compete Intelligence / Field SA Strategy</td>
+              <td><span class="badge badge-success">Aligned</span></td>
+            </tr>
+            <tr>
+              <td><code>job-ad68c481</code></td>
+              <td><strong>Amazon</strong></td>
+              <td>Senior Solutions Developer, Prototyping AI Customer Engineering (PACE)</td>
+              <td>PACE Prototyping / Agentic AI, Custom Python Agents &amp; Serverless PoCs</td>
+              <td><span class="badge badge-success">Aligned</span></td>
+            </tr>
+            <tr>
+              <td><code>job-f3abb0a5</code></td>
+              <td><strong>Amazon AWS</strong></td>
+              <td>Senior Solutions Architect, Strategic Accounts</td>
+              <td>Strategic Accounts / Kubernetes Modernization / FinOps Governance</td>
+              <td><span class="badge badge-success">Aligned</span></td>
+            </tr>
+            <tr>
+              <td><code>job-a921082b</code></td>
+              <td><strong>Wing</strong></td>
+              <td>Staff Technical Program Manager, NPI</td>
+              <td>0-to-1 Pilot Program Execution / PDP Framework / Cross-Functional De-Risking</td>
+              <td><span class="badge badge-success">Aligned</span></td>
+            </tr>
+            <tr>
+              <td><code>job-d2161c33</code></td>
+              <td><strong>Wing</strong></td>
+              <td>Staff Product Manager</td>
+              <td>Commercial Logistics Ecosystem / Merchant Platforms &amp; Multi-Tenant APIs</td>
+              <td><span class="badge badge-success">Aligned</span></td>
+            </tr>
+            <tr>
+              <td><code>job-56b2e764</code></td>
+              <td><strong>Google</strong></td>
+              <td>Senior Product Manager, YouTube Creator Earnings</td>
+              <td>Creator Monetization &amp; Revenue Sharing / Bespoke Terms / Financial AI</td>
+              <td><span class="badge badge-success">Aligned</span></td>
+            </tr>
+            <tr>
+              <td><code>job-9eb3c4db</code></td>
+              <td><strong>Google</strong></td>
+              <td>Product Manager II, YouTube Search</td>
+              <td>Video Search &amp; Discovery / Generative AI Workflows / Ranking Quality</td>
+              <td><span class="badge badge-success">Aligned</span></td>
+            </tr>
+            <tr>
+              <td><code>job-b1c9dbfd</code></td>
+              <td><strong>Google</strong></td>
+              <td>Senior Manager, Product Lead, YouTube Business Technology</td>
+              <td>Core Business Systems / Support &amp; Creator Portals / Agentic Automation</td>
+              <td><span class="badge badge-success">Aligned</span></td>
+            </tr>
+            <tr>
+              <td><code>job-f0f8b009</code></td>
+              <td><strong>Anthropic</strong></td>
+              <td>Product Manager (Technical), Product Support Experience</td>
+              <td>AI-Native Support (Claude Primary Operator) / Closed-Loop Defect Remediation</td>
+              <td><span class="badge badge-success">Aligned</span></td>
+            </tr>
+            <tr>
+              <td><code>job-3b500e3a</code></td>
+              <td><strong>Anthropic</strong></td>
+              <td>Support Engineer</td>
+              <td>Named Enterprise Support / API Tracing &amp; Claude Code / SSO/SAML/OAuth</td>
+              <td><span class="badge badge-success">Aligned</span></td>
+            </tr>
+            <tr>
+              <td><code>job-f3e9bb9f</code></td>
+              <td><strong>Anthropic</strong></td>
+              <td>Technical Program Manager, API Platform</td>
+              <td>API Platform Scaling / Compute, Databases &amp; Inference Stacks / SLOs</td>
+              <td><span class="badge badge-success">Aligned</span></td>
+            </tr>
+            <tr>
+              <td><code>job-2d98b999</code></td>
+              <td><strong>Anthropic</strong></td>
+              <td>Technical Program Manager, Enterprise Commerce</td>
+              <td>CPQ, ERP, Billing &amp; QTC Systems / Marketplace Provisioning / SOX/SOC</td>
+              <td><span class="badge badge-success">Aligned</span></td>
+            </tr>
+            <tr>
+              <td><code>job-9de65674</code></td>
+              <td><strong>Anthropic</strong></td>
+              <td>Technical Program Manager, Infrastructure</td>
+              <td>Developer Productivity &amp; IDP / CI/CD &amp; AI-Assisted Workflows / Reliability</td>
+              <td><span class="badge badge-success">Aligned</span></td>
+            </tr>
+            <tr>
+              <td><code>job-acd6dcb9</code></td>
+              <td><strong>Affirm</strong></td>
+              <td>Staff Technical Program Manager, Engineering Onboarding</td>
+              <td>AI-First Engineering Onboarding / Developer Productivity / Learning Paths</td>
+              <td><span class="badge badge-success">Aligned</span></td>
+            </tr>
+            <tr>
+              <td><code>job-cec4f7ca</code></td>
+              <td><strong>Affirm</strong></td>
+              <td>Senior Technical Program Manager</td>
+              <td>Planning Engines / OKR Portfolio Frameworks / Payments Transformation</td>
+              <td><span class="badge badge-success">Aligned</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 3: BLOCKED JOBS AUDIT -->
+    <section>
+      <h2 class="section-title">3. Defensively Blocked Roles (14 Excluded Roles)</h2>
+      <div class="card" style="padding: 0; overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Job ID</th>
+              <th>Company</th>
+              <th>Role Title</th>
+              <th>Reason for Defensive Exclusion</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>job-13f409d4</code></td>
+              <td>Google</td>
+              <td>Technical Program Manager II, Capacity Planning, Cloud</td>
+              <td>Posting is closed / expired on Google Careers (Job not found)</td>
+              <td><span class="badge badge-danger">Blocked</span></td>
+            </tr>
+            <tr>
+              <td><code>job-a0e3717d</code></td>
+              <td>Google</td>
+              <td>Technical Account Manager, Google Cloud Consulting</td>
+              <td>Duplicate of job-40ccb02c (already aligned in Batch 10)</td>
+              <td><span class="badge badge-danger">Blocked</span></td>
+            </tr>
+            <tr>
+              <td><code>job-165a9a84</code></td>
+              <td>Google</td>
+              <td>Technical Program Manager, People Manager, Product Development and Insertion</td>
+              <td>Duplicate of job-f5913857 (already aligned in Batch 10)</td>
+              <td><span class="badge badge-danger">Blocked</span></td>
+            </tr>
+            <tr>
+              <td><code>job-cf9d844a</code></td>
+              <td>Kaiser Permanente</td>
+              <td>Healthcare Technology Solutions Architect</td>
+              <td>User designated: Excluded / Not pursuing</td>
+              <td><span class="badge badge-danger">Blocked</span></td>
+            </tr>
+            <tr>
+              <td><code>job-ecb88314</code></td>
+              <td>Kaiser Permanente</td>
+              <td>Healthcare Technology Product Manager</td>
+              <td>User designated: Excluded / Not pursuing</td>
+              <td><span class="badge badge-danger">Blocked</span></td>
+            </tr>
+            <tr>
+              <td><code>job-2061ebf1</code></td>
+              <td>Amazon</td>
+              <td>Category Search Index</td>
+              <td>Search category index URL (moved to List of List of Jobs)</td>
+              <td><span class="badge badge-danger">Blocked</span></td>
+            </tr>
+            <tr>
+              <td><code>job-67544d61</code></td>
+              <td>LinkedIn</td>
+              <td>LinkedIn Login, Sign in</td>
+              <td>Generic LinkedIn search/login URL</td>
+              <td><span class="badge badge-danger">Blocked</span></td>
+            </tr>
+            <tr>
+              <td><code>job-399bb3fd</code></td>
+              <td>TuneLab / Eli Lilly</td>
+              <td>Staff Software Engineer - TuneLab</td>
+              <td>BioSpace scraper 429 Too Many Requests rate-limiting</td>
+              <td><span class="badge badge-danger">Blocked</span></td>
+            </tr>
+            <tr>
+              <td><code>job-3df5e77d</code></td>
+              <td>Eli Lilly</td>
+              <td>Software Product Engineering Technical Lead/Manager</td>
+              <td>Posting is closed / expired on Eli Lilly portal</td>
+              <td><span class="badge badge-danger">Blocked</span></td>
+            </tr>
+            <tr>
+              <td><code>job-1fae50fa</code></td>
+              <td>Eli Lilly</td>
+              <td>Software Product Engineering - Development Lead</td>
+              <td>Posting is closed / expired on Eli Lilly portal</td>
+              <td><span class="badge badge-danger">Blocked</span></td>
+            </tr>
+            <tr>
+              <td><code>job-228055c9</code></td>
+              <td>Eli Lilly</td>
+              <td>Staff Software Engineer, TuneLab</td>
+              <td>Posting is closed / expired on Eli Lilly portal</td>
+              <td><span class="badge badge-danger">Blocked</span></td>
+            </tr>
+            <tr>
+              <td><code>job-1ee18531</code></td>
+              <td>Abbott</td>
+              <td>Principal Software Architect</td>
+              <td>Posting is closed / expired on Abbott career portal</td>
+              <td><span class="badge badge-danger">Blocked</span></td>
+            </tr>
+            <tr>
+              <td><code>job-e32a185b</code></td>
+              <td>Google</td>
+              <td>Technical Program Manager Lead, YouTube Shopping</td>
+              <td>Posting is closed / expired on Google Careers ("Job not found")</td>
+              <td><span class="badge badge-danger">Blocked</span></td>
+            </tr>
+            <tr>
+              <td><code>job-22cc5105</code></td>
+              <td>Lawrence Livermore National Laboratory</td>
+              <td>LivIT Associate Program Leader</td>
+              <td>Posting is expired on LLNL portal ("This position is no longer posted")</td>
+              <td><span class="badge badge-danger">Blocked</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
+

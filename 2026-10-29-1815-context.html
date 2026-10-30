@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Aligner Factory - Session Context (2026-10-29 18:15)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-card: #1e293b;
+      --bg-card-hover: #273549;
+      --border-color: #334155;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-blue: #38bdf8;
+      --accent-indigo: #818cf8;
+      --accent-emerald: #34d399;
+      --accent-amber: #fbbf24;
+      --accent-rose: #f43f5e;
+      --badge-success-bg: rgba(52, 211, 153, 0.15);
+      --badge-success-border: #34d399;
+      --badge-warning-bg: rgba(251, 191, 36, 0.15);
+      --badge-warning-border: #fbbf24;
+      --badge-danger-bg: rgba(244, 63, 94, 0.15);
+      --badge-danger-border: #f43f5e;
+      --badge-info-bg: rgba(56, 189, 248, 0.15);
+      --badge-info-border: #38bdf8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .session-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background-color: var(--badge-info-bg);
+      border: 1px solid var(--badge-info-border);
+      color: var(--accent-blue);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .header-summary {
+      color: var(--text-secondary);
+      font-size: 15px;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .stat-card {
+      background-color: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .stat-number {
+      font-size: 26px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    section {
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .step-box {
+      background-color: rgba(15, 23, 42, 0.4);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .step-box:last-child {
+      margin-bottom: 0;
+    }
+
+    .step-box strong {
+      color: var(--accent-blue);
+      display: block;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+
+    ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+    li {
+      position: relative;
+      padding-left: 20px;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    li:last-child {
+      margin-bottom: 0;
+    }
+
+    li::before {
+      content: "•";
+      position: absolute;
+      left: 6px;
+      color: var(--accent-indigo);
+      font-weight: bold;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      background-color: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #e2e8f0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 13.5px;
+    }
+
+    th, td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      background-color: rgba(15, 23, 42, 0.7);
+      color: var(--text-secondary);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+    }
+
+    tr:hover td {
+      background-color: rgba(255, 255, 255, 0.02);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-top">
+        <h1>Resume Aligner Factory</h1>
+        <div class="session-badge">
+          <span>●</span> RESUME CONTEXT: 2026-10-29 18:15
+        </div>
+      </div>
+      <p class="header-summary">
+        Master session handoff artifact documenting: (1) native engine and renderer support for the optional <code>ADDITIONAL WORK EXPERIENCE</code> section matching user's updated <code>SAMPLE_FORMAT.docx</code>; (2) pre-2008 enterprise consulting heritage codification (Moai, Sapient); (3) pre-2008 enterprise systems coding heritage codification (PG&amp;E, Moai, Sapient); (4) Batch 13 and Batch 14 integrations (CoreWeave and Netflix roles, with custom Eightfold API scraper in <code>ingest.py</code>); (5) full 3-step Resume Factory execution and Google Sheets sync (173 total tracked jobs, 170 active positions, 16/16 unit tests passing).
+      </p>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number">173</div>
+          <div class="stat-label">Total Jobs Tracked</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" style="color: var(--accent-emerald);">170</div>
+          <div class="stat-label">Active Aligned Jobs</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" style="color: var(--accent-blue);">340</div>
+          <div class="stat-label">DOCX Resumes (Clean + Review)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" style="color: var(--accent-amber);">170</div>
+          <div class="stat-label">Alignment Reports Standardized</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" style="color: var(--accent-indigo);">16/16</div>
+          <div class="stat-label">Unit Tests Passing</div>
+        </div>
+      </div>
+    </header>
+
+    <section>
+      <h2 class="section-title">1. Optional "ADDITIONAL WORK EXPERIENCE" Architecture</h2>
+      <div class="card">
+        <div class="step-box">
+          <strong>Dynamic Section Placement &amp; Conditional Rendering</strong>
+          <p style="color: var(--text-secondary); margin-top: 4px;">
+            Updated the factory core so that historical heritage appears only when relevant, positioned directly between <code>PROFESSIONAL EXPERIENCE</code> and <code>EDUCATION</code>:
+          </p>
+          <ul>
+            <li><code>src/resume_factory/model.py</code>: Added <code>additional_roles: list[Role] = field(default_factory=list)</code> to <code>Resume</code>.</li>
+            <li><code>src/resume_factory/parse_docx.py</code>: Added section parsing for <code>ADDITIONAL WORK EXPERIENCE</code> into <code>resume.additional_roles</code>.</li>
+            <li><code>src/resume_factory/render_docx.py</code>: Updated <code>build_body</code> to dynamically render <code>ADDITIONAL WORK EXPERIENCE</code> only if <code>resume.additional_roles</code> is populated. Dynamically resolved <code>PlainText</code> style ID and empty paragraph mark XML formatting (<code>&lt;w:rPr/&gt;</code>) to preserve 100% roundtrip fidelity.</li>
+            <li><code>src/resume_factory/engine.py</code>: Chronologically partitioned roles so that positions with <code>"Before 2008"</code> or <code>"Prior"</code> are routed directly to <code>additional_roles</code>, preserving a contiguous 15-year modern timeline (2008–Present) under <code>PROFESSIONAL EXPERIENCE</code>.</li>
+            <li><code>src/resume_factory/validate.py</code>: Updated contiguity and metric validation to check <code>resume.additional_roles</code> for authorized older specialized heritage without triggering false-positive ageism warnings.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">2. Codified Pre-2008 Heritage Roles ("Before 2008")</h2>
+      <div class="card">
+        <div class="step-box">
+          <strong>1. Enterprise Systems Coding &amp; Architecture Heritage</strong>
+          <p style="color: var(--text-secondary); margin-top: 4px;">
+            Targeted for roles requiring enterprise-scale systems programming, code reading, and distributed architectures (Java, Oracle PL/SQL, SQL, SOA):
+          </p>
+          <ul>
+            <li><strong>Role Header:</strong> <code>Pacific Gas and Electric Company, Moai &amp; Sapient | Before 2008 | Enterprise Systems Architect &amp; Senior Software Engineer</code></li>
+            <li><strong>Bullet 1:</strong> <code>Enterprise Systems Programming &amp; Architecture (Java, SQL, SOA):</code> Architected and developed enterprise B2B and middleware systems utilizing Java, Java Servlets, relational databases, and Oracle PL/SQL across high-volume transaction environments; established Service-Oriented Architecture (SOA) and developer coding standards, conducting in-depth code reviews and architectural proofs of concept.</li>
+            <li><strong>Bullet 2:</strong> <code>Full-Lifecycle Enterprise Software Delivery:</code> Led development of complex distribution business rules, database stored procedures, and real-time customer care integration workflows; translated business models into production code, audited multi-team codebases, and managed end-to-end SDLC delivery.</li>
+            <li><strong>Applied to:</strong> JPMorganChase AI4Tech (<code>job-5e7758d3</code>), Amazon PACE (<code>job-ad68c481</code>), Google Ads Solution Engineer (<code>job-1c1a3e35</code>), Google Web Solutions (<code>job-180b4048</code>), Google UCP (<code>job-eb377c18</code>), Ramp TLM (<code>job-d94ee9db</code>), CoreWeave Launch &amp; Sandboxes (<code>job-7486a13b</code>), CoreWeave Fleet Provisioning (<code>job-ef1a6a47</code>), Netflix Catalog Integration (<code>job-cd112848</code>).</li>
+          </ul>
+        </div>
+
+        <div class="step-box">
+          <strong>2. Enterprise Consulting &amp; Practice Leadership Heritage</strong>
+          <p style="color: var(--text-secondary); margin-top: 4px;">
+            Targeted for roles requiring client-facing technical advisory, systems integration, and delivery governance:
+          </p>
+          <ul>
+            <li><strong>Role Header:</strong> <code>Moai Incorporated &amp; Sapient Corporation | Before 2008 | Practice Manager &amp; Senior Technical Consultant</code></li>
+            <li><strong>Bullet 1:</strong> <code>Enterprise Consulting &amp; Practice Leadership:</code> Managed West Coast Professional Services practice at Moai; developed in-house delivery methodologies and field integration guides for enterprise B2B e-commerce platforms; served as primary technical advisory contact for Fortune 500 enterprise partners, facilitating requirements workshops and translating complex business models into technical designs.</li>
+            <li><strong>Bullet 2:</strong> <code>Complex Enterprise Systems &amp; Full SDLC Delivery:</code> Led multi-team client engagements and enterprise architecture utilizing Java, relational databases, and Oracle PL/SQL across high-volume transaction environments at Moai and Sapient Corporation; owned core database procedures, distribution business rules, and end-to-end transportation and billing programs.</li>
+            <li><strong>Applied to:</strong> Google Cloud Consulting TAM (<code>job-4703446c</code>, <code>job-40ccb02c</code>), NetApp Consulting Solutions Engineer (<code>job-200ec81c</code>), Netflix CBP Operations (<code>job-51809b36</code>).</li>
+          </ul>
+        </div>
+
+        <div class="step-box">
+          <strong>3. Commercial Media, 3D Systems &amp; Gaming Heritage</strong>
+          <ul>
+            <li><strong>Role Header:</strong> <code>LucasArts Entertainment Company &amp; Accolade | Before 2008 | Engineering Manager &amp; Lead 3D Systems Engineer</code></li>
+            <li><strong>Highlights:</strong> Managing 14 artists and programmers delivering flagship commercial releases (Star Wars: Masters of Teras Kasi), real-time 3D animation pipelines, and high-concurrency browser MMO backends.</li>
+            <li><strong>Applied to:</strong> Supabase AWS Gaming (<code>job-17c82af2</code>), Netflix Promotional Artwork Engineering (<code>job-07ef0f1a</code>), Amazon Gaming Solutions Architects (<code>job-de825d22</code>, <code>job-628cf442</code>, <code>job-450c77bb</code>).</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">3. Batch 13 &amp; Batch 14 Role Integrations</h2>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Job ID</th>
+              <th>Company</th>
+              <th>Role Title</th>
+              <th>Specialized Heritage Section</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>job-5e7758d3</code></td>
+              <td>JPMorganChase</td>
+              <td>Applied AI/ML Researcher - VP (AI4Tech Team)</td>
+              <td>Enterprise Systems Programming &amp; Architecture (PG&amp;E, Moai &amp; Sapient)</td>
+            </tr>
+            <tr>
+              <td><code>job-93d02614</code></td>
+              <td>GitLab</td>
+              <td>Principal Engineer, Duo Agent Platform</td>
+              <td>100% Remote / Asynchronous Systems Delivery &amp; Concurrency Architecture</td>
+            </tr>
+            <tr>
+              <td><code>job-4703446c</code></td>
+              <td>Google</td>
+              <td>Technical Account Manager, Google Cloud Consulting</td>
+              <td>Enterprise Consulting &amp; Practice Leadership (Moai &amp; Sapient)</td>
+            </tr>
+            <tr>
+              <td><code>job-7486a13b</code></td>
+              <td>CoreWeave</td>
+              <td>Engineering Manager, Launch &amp; Sandboxes</td>
+              <td>Enterprise Systems Programming &amp; Architecture (PG&amp;E, Moai &amp; Sapient)</td>
+            </tr>
+            <tr>
+              <td><code>job-ef1a6a47</code></td>
+              <td>CoreWeave</td>
+              <td>Engineering Manager, Fleet Provisioning Automation</td>
+              <td>Enterprise Systems Programming &amp; Architecture (PG&amp;E, Moai &amp; Sapient)</td>
+            </tr>
+            <tr>
+              <td><code>job-51809b36</code></td>
+              <td>Netflix</td>
+              <td>Senior Manager, Business &amp; Technical Operations - CBP</td>
+              <td>Enterprise Consulting &amp; Practice Leadership (Moai &amp; Sapient)</td>
+            </tr>
+            <tr>
+              <td><code>job-07ef0f1a</code></td>
+              <td>Netflix</td>
+              <td>Engineering Manager - Promotional Artwork Engineering</td>
+              <td>Digital Asset &amp; Animation Engineering Management (LucasArts &amp; Accolade)</td>
+            </tr>
+            <tr>
+              <td><code>job-cd112848</code></td>
+              <td>Netflix</td>
+              <td>Engineering Manager - Catalog Integration</td>
+              <td>Enterprise Systems Programming &amp; Architecture (PG&amp;E, Moai &amp; Sapient)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">4. System Health &amp; Verification Summary</h2>
+      <div class="card">
+        <div class="step-box">
+          <strong>Quality Gates &amp; Master State</strong>
+          <ul>
+            <li><strong>Unit Tests:</strong> 16/16 tests passing cleanly via <code>pytest</code> (covering DOCX formatting golden tests, Google Sheets webhook serialization, and tracker state).</li>
+            <li><strong>Active Aligned Jobs:</strong> 170 active jobs completely compiled with clean DOCX, review DOCX, <code>alignment_report.md</code>, and <code>questions.md</code>.</li>
+            <li><strong>Total Tracked Jobs:</strong> 173 jobs in <code>output/tracker.json</code>, fully synchronized with Google Sheets (170 active, 3 blocked/closed listings).</li>
+            <li><strong>Template Integrity:</strong> <code>SAMPLE_FORMAT.docx</code> preserved with 9pt Times New Roman, exact margins, bold section headers with thin bottom borders, and standardized bullet formatting.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
+

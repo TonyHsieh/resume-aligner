@@ -62,7 +62,7 @@ def parse_master_resume(html_path: Path | str) -> FactLedger:
 
     # Base contact info
     name = "Tony Hsieh"
-    phone = "(510) 897-8886"
+    phone = "(510) 397-8886"
     email = "tonyhsieh888@hotmail.com"
 
     # Education (no graduation year)

@@ -110,6 +110,68 @@ def parse_recruiter_intros(intros_path: str | Path = DEFAULT_INTROS_FILE) -> lis
     return entries
 
 
+
+def match_recruiter_intro(job, intros: list[dict]) -> tuple[str, str]:
+    """Match a job to its recruiter outreach note and search query.
+    Guarantees 100% company and role alignment with ZERO cross-company contamination.
+    """
+    job_canon = canonical_source(job.source)
+    c_lower = (job.company or "").lower().strip()
+    t_lower = (job.title or "").lower().strip()
+
+    c_tokens = [tok for tok in re.split(r"[\s/–-]+", c_lower) if len(tok) > 2 and tok not in ["inc", "llc", "corp", "group", "the", "and"]]
+    if "amazon" in c_tokens or "aws" in c_tokens:
+        c_tokens = list(set(c_tokens + ["amazon", "aws"]))
+
+    intro = None
+
+    # 1. Match by Canonical URL (Exact URL correlation)
+    for e in intros:
+        if e["canonical_url"] and e["canonical_url"] == job_canon:
+            intro = e
+            break
+
+    # 2. Match by BOTH Company AND Title (never match across different companies!)
+    if not intro and c_tokens and t_lower:
+        for e in intros:
+            header_lower = e["header"].lower()
+            if any(tok in header_lower for tok in c_tokens):
+                clean_t = re.sub(r"[\(\)\[\],–-]", " ", t_lower).strip()
+                title_words = [w for w in clean_t.split() if len(w) > 3]
+                if title_words and sum(1 for w in title_words if w in header_lower) >= max(2, len(title_words) // 2):
+                    intro = e
+                    break
+
+    # 3. Sanity check: Ensure company consistency
+    if intro and c_tokens:
+        header_lower = intro["header"].lower()
+        note_lower = intro["note"].lower()
+        query_lower = intro["query"].lower()
+        if not any(tok in header_lower or tok in note_lower or tok in query_lower for tok in c_tokens):
+            intro = None
+
+    if intro and intro.get("note"):
+        note = intro["note"]
+        query = intro["query"] if intro.get("query") else f'site:linkedin.com/in ("{job.company or "Tech"}") ("Technical Recruiter" OR "Talent Acquisition")'
+        return note, query
+
+    # 4. Dynamic fallback guaranteed to be company-specific
+    comp = job.company or "your team"
+    title = job.title or "this role"
+    t_low = (job.title or "").lower()
+    if any(k in t_low for k in ["architect", "solutions", "cloud", "platform"]):
+        hook = "I bring 15+ years of distributed systems and cloud architecture experience, having led internal developer platform delivery improving deployment turnaround by 40%"
+    elif any(k in t_low for k in ["product", "pm", "manager"]):
+        hook = "I bring 15+ years of technical platform leadership, commercial product lifecycle delivery, and metric-driven operational governance"
+    elif any(k in t_low for k in ["game", "gaming", "streaming", "media", "3d"]):
+        hook = "Having directed commercial 3D game delivery at LucasArts and architected high-concurrency multiplayer platforms"
+    else:
+        hook = "I bring extensive experience architecting high-reliability distributed platforms, developer tooling, and 24x7 production systems"
+
+    note = f"Hi [Name], I noticed {comp} is hiring for a {title}. {hook}. I'd love to connect and be considered."
+    query = f'site:linkedin.com/in ("{comp}") ("Technical Recruiter" OR "Talent Acquisition")'
+    return note, query
+
 def push_to_sheets(
     webhook_url: str | None = None,
     tracker_path: str = "output/tracker.json",
@@ -137,39 +199,8 @@ def push_to_sheets(
     for idx, job in enumerate(active_jobs):
         resume_path = job.outputs.get("resume", "")
 
-        # Precise matching for recruiter intro note & search query
-        intro = None
-        job_canon = canonical_source(job.source)
-        # 1. Match by canonical URL
-        for e in intros:
-            if e["canonical_url"] and e["canonical_url"] == job_canon:
-                intro = e
-                break
-
-        # 2. Match by exact sequential index if company/title align
-        if not intro and idx < len(intros):
-            candidate = intros[idx]
-            c_name = job.company.lower().split("/")[0].strip() if job.company else ""
-            if c_name in candidate["header"].lower() or (job.title and job.title.lower()[:15] in candidate["header"].lower()):
-                intro = candidate
-
-        # 3. Match by specific job title within company
-        if not intro:
-            for e in intros:
-                if job.title and job.title.lower() in e["header"].lower():
-                    intro = e
-                    break
-
-        intro_note = (
-            intro["note"]
-            if intro and intro["note"]
-            else f"Hi [Name], I noticed you're hiring for a {job.title} at {job.company}. I'd love to connect and be considered."
-        )
-        search_query = (
-            intro["query"]
-            if intro and intro["query"]
-            else f"https://www.linkedin.com/search/results/people/?keywords={job.company or 'Tech'}%20Recruiter"
-        )
+        # Precise, company-isolated matching for recruiter intro note & search query
+        intro_note, search_query = match_recruiter_intro(job, intros)
 
         item_dict = {
             "Status": job.status.capitalize(),

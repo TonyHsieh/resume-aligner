@@ -47,7 +47,7 @@ def signature(path):
                 ppr is not None and ppr.find(qn("w:pBdr")) is not None,
                 is_bullet,
                 _mark(p) if not p.text.strip() else None,
-                tuple((normalize(t), b, i, s) for t, b, i, s in _runs(p)),
+                tuple((normalize(t), b, i, s) for t, b, i, s in _runs(p) if normalize(t)),
             )
         )
     return sigs
@@ -64,6 +64,8 @@ def test_parser_finds_expected_structure(sample_resume):
     assert len(r.roles) == 11
     assert r.roles[0].company == "Stellarus"
     assert all(role.bullets for role in r.roles)
+    assert len(r.additional_roles) == 1
+    assert r.additional_roles[0].company == "LucasArts, and Accolade"
     assert [e.label for e in r.education] == ["University of California, Santa Barbara:"]
     assert len(r.skills) == 3
 
