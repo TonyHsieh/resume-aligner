@@ -564,3 +564,38 @@ def load_fact_ledger(path: Path | str = "inputs/facts.yaml") -> FactLedger:
         roles=roles,
         addendum_facts=data.get("addendum_facts", {}),
     )
+
+
+def ingest_master_resume(
+    source: Path | str = "inputs/master_resume.html",
+    out_path: Path | str = "inputs/facts.yaml",
+    preserve_contact: bool = False,
+) -> FactLedger:
+    """Parse master resume HTML and write the single-source-of-truth facts.yaml."""
+    src = Path(source)
+    if not src.exists():
+        raise FileNotFoundError(f"Master resume not found: {src}")
+
+    ledger = parse_master_resume(src)
+    out = Path(out_path)
+    if preserve_contact and out.exists():
+        existing = load_fact_ledger(out)
+        ledger.name = existing.name or ledger.name
+        ledger.phone = existing.phone or ledger.phone
+        ledger.email = existing.email or ledger.email
+
+    save_fact_ledger(ledger, out)
+    return ledger
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Ingest master resume HTML into inputs/facts.yaml")
+    parser.add_argument("source", nargs="?", default="inputs/master_resume.html", help="Master resume HTML path")
+    parser.add_argument("--out", default="inputs/facts.yaml", help="Output facts.yaml path")
+    parser.add_argument("--preserve-contact", action="store_true", help="Keep existing contact fields in facts.yaml")
+    args = parser.parse_args()
+    res = ingest_master_resume(args.source, out_path=args.out, preserve_contact=args.preserve_contact)
+    bullet_count = sum(len(r.bullets) for r in res.roles)
+    print(f"Ingested {args.source} -> {args.out} ({len(res.roles)} roles, {bullet_count} bullets)")

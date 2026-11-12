@@ -162,6 +162,29 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("status", choices=STATUSES)
     p.add_argument("--note")
     p.set_defaults(func=cmd_mark)
+
+    # Facts / Resume ingestion
+    facts = sub.add_parser("facts", help="manage master resume fact ledger (inputs/facts.yaml)").add_subparsers(
+        dest="action", required=True
+    )
+    p = facts.add_parser("ingest", help="ingest master resume HTML into inputs/facts.yaml")
+    p.add_argument("source", nargs="?", default="inputs/master_resume.html", help="master resume HTML path")
+    p.add_argument("--out", default="inputs/facts.yaml", help="output facts.yaml path")
+    p.add_argument("--preserve-contact", action="store_true", help="keep existing name/phone/email in facts.yaml")
+    def cmd_facts_ingest(args):
+        from .ledger import ingest_master_resume
+        try:
+            ledger = ingest_master_resume(
+                args.source,
+                out_path=args.out,
+                preserve_contact=args.preserve_contact,
+            )
+        except FileNotFoundError as exc:
+            raise SystemExit(str(exc)) from exc
+        bullet_count = sum(len(r.bullets) for r in ledger.roles)
+        print(f"Ingested {args.source} -> {args.out} ({len(ledger.roles)} roles, {bullet_count} bullets)")
+        return 0
+    p.set_defaults(func=cmd_facts_ingest)
     return parser
 
 

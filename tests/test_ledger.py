@@ -123,3 +123,46 @@ def test_load_fact_ledger_uses_facts_yaml_as_single_source_of_truth(tmp_path: Pa
     assert ledger.phone == "(555) 010-1234"
     assert ledger.email == "canonical@example.com"
 
+
+def test_ingest_master_resume_writes_facts_yaml_and_cli(tmp_path: Path) -> None:
+    from resume_factory.cli import main as cli_main
+    from resume_factory.ledger import ingest_master_resume
+
+    html_file = tmp_path / "master_resume.html"
+    html_file.write_text(
+        "<html><head><title>Test Candidate</title></head><body>"
+        "<pre>mobile: (555) 010-1234\ne-mail: candidate@example.com</pre>"
+        "</body></html>",
+        encoding="utf-8",
+    )
+    out_file = tmp_path / "facts.yaml"
+    rc = cli_main(["facts", "ingest", str(html_file), "--out", str(out_file)])
+    assert rc == 0
+    assert out_file.exists()
+
+    loaded = load_fact_ledger(out_file)
+    assert loaded.name == "Test Candidate"
+    assert loaded.phone == "(555) 010-1234"
+    assert loaded.email == "candidate@example.com"
+    assert len(loaded.roles) > 0
+
+    # Preserve-contact keeps existing contact info when re-ingesting updated HTML
+    html_file.write_text(
+        "<html><head><title>Other Name</title></head><body>"
+        "<pre>mobile: (555) 010-9999\ne-mail: stale@example.com</pre>"
+        "</body></html>",
+        encoding="utf-8",
+    )
+    ingest_master_resume(html_file, out_path=out_file, preserve_contact=True)
+    preserved = load_fact_ledger(out_file)
+    assert preserved.name == "Test Candidate"
+    assert preserved.phone == "(555) 010-1234"
+    assert preserved.email == "candidate@example.com"
+
+
+def test_ingest_master_resume_missing_source_fails(tmp_path: Path) -> None:
+    from resume_factory.cli import main as cli_main
+
+    with pytest.raises(SystemExit):
+        cli_main(["facts", "ingest", str(tmp_path / "missing.html"), "--out", str(tmp_path / "facts.yaml")])
+
