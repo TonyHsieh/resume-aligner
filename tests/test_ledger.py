@@ -80,3 +80,31 @@ def test_independent_contractor_crypto_game_bullet() -> None:
     assert ic_role is not None
     assert any("DynamoDB" in b.raw_text or "crypto" in b.raw_text.lower() for b in ic_role.bullets)
 
+
+def test_validate_resume_rejects_stale_phone_number() -> None:
+    from resume_factory.model import Resume
+    from resume_factory.validate import validate_resume
+
+    ledger = FactLedger(
+        name="Tony Hsieh",
+        phone="(555) 010-0000",
+        email="candidate@example.com",
+        education=[],
+        skills={},
+        roles=[],
+    )
+    bad_resume = Resume(
+        name="Tony Hsieh",
+        headline="Principal Technologist",
+        contact="mobile: (555) 010-0000  •  e-mail: candidate@example.com",
+        summary="Experienced cloud platform leader.",
+        expertise=[],
+        roles=[],
+        additional_roles=[],
+        education=[],
+        skills=[],
+    )
+    ok, errs = validate_resume(bad_resume, ledger, [])
+    assert ok is False
+    assert any("010-0000" in e for e in errs)
+
