@@ -52,6 +52,21 @@ def clean_text(s: str) -> str:
     return s.strip()
 
 
+def _apply_contact_addendum(
+    addendum_path: Path, name: str, phone: str, email: str
+) -> tuple[str, str, str]:
+    """Apply Name/Phone/Email overrides from facts_addendum.md when present."""
+    if not addendum_path.exists():
+        return name, phone, email
+    add_txt = addendum_path.read_text(encoding="utf-8", errors="ignore")
+    overrides = {"name": name, "phone": phone, "email": email}
+    for field_name, attr in (("Name", "name"), ("Phone", "phone"), ("Email", "email")):
+        m = re.search(rf"^-\s*{field_name}\s*:\s*(.+)$", add_txt, re.M | re.I)
+        if m:
+            overrides[attr] = m.group(1).strip()
+    return overrides["name"], overrides["phone"], overrides["email"]
+
+
 def parse_master_resume(html_path: Path | str) -> FactLedger:
     content = Path(html_path).read_text(encoding="utf-8", errors="ignore")
     soup = BeautifulSoup(content, "html.parser")
@@ -69,19 +84,9 @@ def parse_master_resume(html_path: Path | str) -> FactLedger:
     email = m_email.group(1).strip() if m_email else ""
 
     # Apply overrides from sibling facts_addendum.md if present
-    addendum_path = Path(html_path).parent / "facts_addendum.md"
-    if addendum_path.exists():
-        add_txt = addendum_path.read_text(encoding="utf-8", errors="ignore")
-        for field_name, attr in (("Name", "name"), ("Phone", "phone"), ("Email", "email")):
-            m = re.search(rf"^-\s*{field_name}\s*:\s*(.+)$", add_txt, re.M | re.I)
-            if m:
-                val = m.group(1).strip()
-                if attr == "name":
-                    name = val
-                elif attr == "phone":
-                    phone = val
-                elif attr == "email":
-                    email = val
+    name, phone, email = _apply_contact_addendum(
+        Path(html_path).parent / "facts_addendum.md", name, phone, email
+    )
 
     # Education (no graduation year)
     education = [
@@ -570,10 +575,16 @@ def load_fact_ledger(path: Path | str = "inputs/facts.yaml") -> FactLedger:
                 tags=r.get("tags", []),
             )
         )
+    name, phone, email = _apply_contact_addendum(
+        Path(path).parent / "facts_addendum.md",
+        data["name"],
+        data["phone"],
+        data["email"],
+    )
     return FactLedger(
-        name=data["name"],
-        phone=data["phone"],
-        email=data["email"],
+        name=name,
+        phone=phone,
+        email=email,
         education=data["education"],
         skills=data["skills"],
         roles=roles,

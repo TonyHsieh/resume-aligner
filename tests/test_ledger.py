@@ -108,3 +108,18 @@ def test_validate_resume_rejects_mismatched_phone_number() -> None:
     assert ok is False
     assert any("phone" in e.lower() for e in errs)
 
+
+def test_load_fact_ledger_applies_addendum_override(tmp_path: Path) -> None:
+    facts_file = tmp_path / "facts.yaml"
+    facts_file.write_text(
+        "name: Test Candidate\nphone: (555) 010-9999\nemail: old@example.com\neducation: []\nskills: {}\nroles: []\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "facts_addendum.md").write_text(
+        "- Phone: (555) 010-1234\n- Email: new@example.com\n",
+        encoding="utf-8",
+    )
+    ledger = load_fact_ledger(facts_file)
+    assert ledger.phone == "(555) 010-1234"
+    assert ledger.email == "new@example.com"
+
