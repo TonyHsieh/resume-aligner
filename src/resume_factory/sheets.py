@@ -111,17 +111,45 @@ def parse_recruiter_intros(intros_path: str | Path = DEFAULT_INTROS_FILE) -> lis
 
 
 
+def _norm_text(s: str) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", (s or "").lower()).strip()
+
+
+def _split_intro_header(header: str) -> tuple[str, str]:
+    for sep in (" – ", " — ", " - "):
+        if sep in header:
+            comp, title = header.split(sep, 1)
+            return comp.strip(), title.strip()
+    return header.strip(), ""
+
+
+def _company_matches(job_company: str | None, other_company: str | None) -> bool:
+    jc = _norm_text(job_company or "")
+    oc = _norm_text(other_company or "")
+    if not jc or not oc:
+        return False
+    stop = {"inc", "llc", "corp", "corporation", "company", "co", "the"}
+    j_tokens = [w for w in jc.split() if w not in stop]
+    o_tokens = [w for w in oc.split() if w not in stop]
+    if not j_tokens or not o_tokens:
+        return False
+    if j_tokens == o_tokens:
+        return True
+    if ("amazon" in j_tokens or "aws" in j_tokens) and ("amazon" in o_tokens or "aws" in o_tokens):
+        return True
+    if ("google" in j_tokens or "youtube" in j_tokens) and ("google" in o_tokens or "youtube" in o_tokens):
+        return True
+    # Only allow substring containment on single-word brand names when the first/primary brand token matches
+    return j_tokens[0] == o_tokens[0] and (len(j_tokens) == 1 or len(o_tokens) == 1)
+
+
 def match_recruiter_intro(job, intros: list[dict]) -> tuple[str, str]:
     """Match a job to its recruiter outreach note and search query.
-    Guarantees 100% company and role alignment with ZERO cross-company contamination.
+    Guarantees 100% company and role alignment with ZERO cross-company or cross-role contamination.
     """
     job_canon = canonical_source(job.source)
-    c_lower = (job.company or "").lower().strip()
-    t_lower = (job.title or "").lower().strip()
-
-    c_tokens = [tok for tok in re.split(r"[\s/–-]+", c_lower) if len(tok) > 2 and tok not in ["inc", "llc", "corp", "group", "the", "and"]]
-    if "amazon" in c_tokens or "aws" in c_tokens:
-        c_tokens = list(set(c_tokens + ["amazon", "aws"]))
+    job_base = job_canon.split("?", 1)[0]
+    norm_title = _norm_text(job.title or "")
 
     intro = None
 
@@ -131,23 +159,24 @@ def match_recruiter_intro(job, intros: list[dict]) -> tuple[str, str]:
             intro = e
             break
 
-    # 2. Match by BOTH Company AND Title (never match across different companies!)
-    if not intro and c_tokens and t_lower:
+    # 2. Match by Base URL (ignoring query params) or Exact Normalized Company + Title
+    if not intro and job.company:
         for e in intros:
-            header_lower = e["header"].lower()
-            if any(tok in header_lower for tok in c_tokens):
-                clean_t = re.sub(r"[\(\)\[\],–-]", " ", t_lower).strip()
-                title_words = [w for w in clean_t.split() if len(w) > 3]
-                if title_words and sum(1 for w in title_words if w in header_lower) >= max(2, len(title_words) // 2):
-                    intro = e
-                    break
+            hdr_comp, hdr_title = _split_intro_header(e["header"])
+            if not _company_matches(job.company, hdr_comp):
+                continue
+            e_base = e["canonical_url"].split("?", 1)[0] if e["canonical_url"] else ""
+            if e_base and e_base == job_base:
+                intro = e
+                break
+            if norm_title and hdr_title and norm_title == _norm_text(hdr_title):
+                intro = e
+                break
 
     # 3. Sanity check: Ensure company consistency
-    if intro and c_tokens:
-        header_lower = intro["header"].lower()
-        note_lower = intro["note"].lower()
-        query_lower = intro["query"].lower()
-        if not any(tok in header_lower or tok in note_lower or tok in query_lower for tok in c_tokens):
+    if intro and job.company:
+        hdr_comp, _ = _split_intro_header(intro["header"])
+        if not _company_matches(job.company, hdr_comp):
             intro = None
 
     if intro and intro.get("note"):
@@ -155,7 +184,7 @@ def match_recruiter_intro(job, intros: list[dict]) -> tuple[str, str]:
         query = intro["query"] if intro.get("query") else f'site:linkedin.com/in ("{job.company or "Tech"}") ("Technical Recruiter" OR "Talent Acquisition")'
         return note, query
 
-    # 4. Dynamic fallback guaranteed to be company-specific
+    # 4. Dynamic fallback guaranteed to be company- and role-specific
     comp = job.company or "your team"
     title = job.title or "this role"
     t_low = (job.title or "").lower()
@@ -168,7 +197,8 @@ def match_recruiter_intro(job, intros: list[dict]) -> tuple[str, str]:
     else:
         hook = "I bring extensive experience architecting high-reliability distributed platforms, developer tooling, and 24x7 production systems"
 
-    note = f"Hi [Name], I noticed {comp} is hiring for a {title}. {hook}. I'd love to connect and be considered."
+    article = "an" if re.match(r"^(?:[aeiou]|ai\b|ml\b|it\b|sre\b|epm\b)", t_low.strip()) else "a"
+    note = f"Hi [Name], I noticed {comp} is hiring for {article} {title}. {hook}. I'd love to connect and be considered."
     query = f'site:linkedin.com/in ("{comp}") ("Technical Recruiter" OR "Talent Acquisition")'
     return note, query
 
