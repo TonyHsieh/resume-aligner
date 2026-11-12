@@ -166,3 +166,43 @@ def test_ingest_master_resume_missing_source_fails(tmp_path: Path) -> None:
     with pytest.raises(SystemExit):
         cli_main(["facts", "ingest", str(tmp_path / "missing.html"), "--out", str(tmp_path / "facts.yaml")])
 
+
+def test_ingest_master_resume_creates_parent_dirs_and_handles_empty_contact(tmp_path: Path) -> None:
+    from resume_factory.ledger import ingest_master_resume
+
+    html_file = tmp_path / "minimal.html"
+    html_file.write_text("<html><body><p>Experience only</p></body></html>", encoding="utf-8")
+    out_file = tmp_path / "nested" / "dir" / "facts.yaml"
+
+    ledger = ingest_master_resume(html_file, out_path=out_file, preserve_contact=True)
+    assert out_file.exists()
+    assert ledger.name == ""
+    assert ledger.phone == ""
+    assert ledger.email == ""
+
+
+def test_ledger_module_cli_entrypoint(tmp_path: Path) -> None:
+    import subprocess
+    import sys
+
+    html_file = tmp_path / "master.html"
+    html_file.write_text(
+        "<html><head><title>CLI Candidate</title></head><body>"
+        "<pre>phone: (555) 010-2468\nemail: cli@example.com</pre>"
+        "</body></html>",
+        encoding="utf-8",
+    )
+    out_file = tmp_path / "facts.yaml"
+    proc = subprocess.run(
+        [sys.executable, "-m", "resume_factory.ledger", str(html_file), "--out", str(out_file)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc.returncode == 0, proc.stderr
+    assert "Ingested" in proc.stdout
+    loaded = load_fact_ledger(out_file)
+    assert loaded.name == "CLI Candidate"
+    assert loaded.phone == "(555) 010-2468"
+    assert loaded.email == "cli@example.com"
+

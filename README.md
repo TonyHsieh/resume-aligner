@@ -18,6 +18,7 @@ It is built around strict engineering principles: **zero hallucination**, **grou
   - [3. Generating Tailored Resumes (`rf jobs align`)](#3-generating-tailored-resumes-rf-jobs-align)
   - [4. Tracking & Status Management](#4-tracking--status-management)
   - [5. Syncing to Google Sheets](#5-syncing-to-google-sheets)
+  - [6. Ingesting Master Resume (`rf facts ingest`)](#6-ingesting-master-resume-rf-facts-ingest)
 - [Generated Artifacts](#generated-artifacts)
 - [Google Sheets Webhook & Custom Columns](#google-sheets-webhook--custom-columns)
 - [Privacy & Job Application Confidentiality](#privacy--job-application-confidentiality)
@@ -151,8 +152,9 @@ resume-aligner/
 │       ├── SKILL.md               # Skill definition and instructions
 │       └── scripts/               # snapshot.py and snapshot.sh utilities
 │
-└── tests/                         # Automated test suite (33 passing tests)
-    ├── test_ledger.py             # Fact ledger parsing, HIPAA/PHI compliance & contact tests
+└── tests/                         # Automated test suite (45 passing tests)
+    ├── test_ingest.py             # JD scraping & Apple Jobs API regression tests
+    ├── test_ledger.py             # Fact ledger parsing, ingestion CLI & single-source-of-truth tests
     ├── test_render_docx.py        # Roundtrip golden tests against SAMPLE_FORMAT.docx
     ├── test_sheets.py             # Webhook serialization, schema mapping & recruiter isolation tests
     ├── test_snapshot.py           # Snapshot archiving, integrity, exclusion & security tests
@@ -175,7 +177,7 @@ When entering the shell, `uv` automatically verifies and syncs all dependencies 
 ```bash
 rf --help
 ```
-You should see the `rf` CLI commands (`jobs`, `sheets`).
+You should see the `rf` CLI commands (`jobs`, `sheets`, `facts`).
 
 ---
 
@@ -281,6 +283,24 @@ Push all tracked roles, tailored resume links, recruiter search queries, and tai
 
 ```bash
 rf sheets sync
+```
+
+### 6. Ingesting Master Resume (`rf facts ingest`)
+
+`inputs/facts.yaml` is the **single source of truth** read by the alignment engine at runtime. Whenever you update `inputs/master_resume.html`, run the on-demand ingester to regenerate `inputs/facts.yaml`:
+
+```bash
+# Default: parse inputs/master_resume.html -> inputs/facts.yaml
+./rf facts ingest
+
+# Specify custom input/output paths:
+./rf facts ingest path/to/master_resume.html --out inputs/facts.yaml
+
+# Refresh roles and skills while preserving existing contact info in inputs/facts.yaml:
+./rf facts ingest --preserve-contact
+
+# Or invoke the module directly:
+python -m resume_factory.ledger
 ```
 
 ---
