@@ -27,7 +27,7 @@ def test_load_fact_ledger_hipaa_phi_present() -> None:
 
     ledger = load_fact_ledger(ledger_path)
     assert ledger.name == "Tony Hsieh"
-    assert ledger.phone == "(555) 010-0000"
+    assert ledger.phone  # Populated dynamically from local facts.yaml (not hardcoded in git)
 
     # Find Blue Shield 2013 role
     bsc_2013_role = next((r for r in ledger.roles if r.id == "role_bsc_2013"), None)
@@ -62,7 +62,7 @@ def test_parse_master_resume_extracts_hipaa() -> None:
 
     ledger = parse_master_resume(html_path)
     assert ledger.name == "Tony Hsieh"
-    assert ledger.phone == "(555) 010-0000"
+    assert ledger.phone  # Parsed from local master_resume.html / facts_addendum.md
 
     bsc = next((r for r in ledger.roles if r.id == "role_bsc_2013"), None)
     assert bsc is not None
@@ -81,22 +81,22 @@ def test_independent_contractor_crypto_game_bullet() -> None:
     assert any("DynamoDB" in b.raw_text or "crypto" in b.raw_text.lower() for b in ic_role.bullets)
 
 
-def test_validate_resume_rejects_stale_phone_number() -> None:
+def test_validate_resume_rejects_mismatched_phone_number() -> None:
     from resume_factory.model import Resume
     from resume_factory.validate import validate_resume
 
     ledger = FactLedger(
-        name="Tony Hsieh",
-        phone="(555) 010-0000",
+        name="Test Candidate",
+        phone="(555) 010-1234",
         email="candidate@example.com",
         education=[],
         skills={},
         roles=[],
     )
     bad_resume = Resume(
-        name="Tony Hsieh",
+        name="Test Candidate",
         headline="Principal Technologist",
-        contact="mobile: (555) 010-0000  •  e-mail: candidate@example.com",
+        contact="mobile: (555) 010-9999  •  e-mail: candidate@example.com",
         summary="Experienced cloud platform leader.",
         expertise=[],
         roles=[],
@@ -106,5 +106,5 @@ def test_validate_resume_rejects_stale_phone_number() -> None:
     )
     ok, errs = validate_resume(bad_resume, ledger, [])
     assert ok is False
-    assert any("010-0000" in e for e in errs)
+    assert any("phone" in e.lower() for e in errs)
 

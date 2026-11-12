@@ -39,8 +39,8 @@ def validate_resume(
         pass
     if "San Ramon" in resume.contact or "linkedin.com" in resume.contact:
         errors.append("Contact line must only contain mobile and email (no city or LinkedIn URL).")
-    if "010-0000" in resume.contact:
-        errors.append("Stale/wrong phone number (555) 010-0000 detected; expected (555) 010-0000.")
+    if ledger.phone and ledger.phone not in resume.contact:
+        errors.append("Resume contact line does not match canonical phone number from fact ledger.")
 
     for edu in resume.education:
         if re.search(r"\b(19\d\d|20\d\d)\b", edu.text + edu.label):

@@ -217,7 +217,7 @@ Master resume, Agentic AI, on-call and Nix are now resolved. Comparing the maste
 | 2 | Blue Shield title (2013–2021) | "Infrastructure Solution Architect + Middleware Infrastructure Engineering **Manager**" | "…Middleware Engineering Manager". You said **Senior Manager**. |
 | 3 | 2021–2025 title | "Principal Technologist - **Cloud and Automation**" | "…Product & Automation Strategy" |
 | 4 | The 40% metric | Improved **developer deployment times** by 40%; 80% adherence to **FinOps and Change Management** | "accelerating feature delivery velocity by 40%"; "change management adherence by 80%" |
-| 5 | Contact line | Mobile (555) 010-0000 and email only (home address is commented out) | Same phone and email, plus **San Ramon, CA** and **linkedin.com/in/example** |
+| 5 | Contact line | Mobile and email only (home address is commented out) | Same phone and email, plus **San Ramon, CA** and **linkedin.com/in/example** |
 
 Other notes:
 - **Cutoff mechanics:** the ~15-year window from Oct 2026 starts around 2011, but Safeway (2008–2013) straddles it. Default: drop the concurrent contractor role and anything older. Include Safeway only when a JD values its Oracle WebLogic or Master Data Management experience, and never show start dates earlier than the role's real start date.

@@ -60,10 +60,28 @@ def parse_master_resume(html_path: Path | str) -> FactLedger:
     for comment in soup.find_all(string=lambda text: isinstance(text, Comment)):
         comment.extract()
 
-    # Base contact info
-    name = "Tony Hsieh"
-    phone = "(555) 010-0000"
-    email = "candidate@example.com"
+    # Extract contact info dynamically from master HTML (never hardcode PII in source)
+    visible_text = soup.get_text("\n")
+    name = soup.title.string.strip() if soup.title and soup.title.string else ""
+    m_phone = re.search(r"(?:mobile|phone)\s*:\s*([+\d()\s.-]{7,25})", visible_text, re.I)
+    phone = clean_text(m_phone.group(1)) if m_phone else ""
+    m_email = re.search(r"e-?mail\s*:\s*([^\s<>]+@[^\s<>]+)", visible_text, re.I)
+    email = m_email.group(1).strip() if m_email else ""
+
+    # Apply overrides from sibling facts_addendum.md if present
+    addendum_path = Path(html_path).parent / "facts_addendum.md"
+    if addendum_path.exists():
+        add_txt = addendum_path.read_text(encoding="utf-8", errors="ignore")
+        for field_name, attr in (("Name", "name"), ("Phone", "phone"), ("Email", "email")):
+            m = re.search(rf"^-\s*{field_name}\s*:\s*(.+)$", add_txt, re.M | re.I)
+            if m:
+                val = m.group(1).strip()
+                if attr == "name":
+                    name = val
+                elif attr == "phone":
+                    phone = val
+                elif attr == "email":
+                    email = val
 
     # Education (no graduation year)
     education = [
