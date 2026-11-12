@@ -169,6 +169,66 @@ def fetch_url_content(url: str, timeout: int = 25) -> tuple[str, str, str, bool]
             except Exception:
                 pass
 
+    # 2.8 Oracle Cloud HCM Candidate Experience
+    if "oraclecloud.com" in domain and ("/jobs/preview/" in parsed.path or "/job/" in parsed.path):
+        m = re.search(r'/(?:jobs/preview|job)/(\d+)', parsed.path)
+        if m:
+            req_id = m.group(1)
+            api_url = f"https://{parsed.netloc}/hcmRestApi/resources/latest/recruitingCEJobRequisitionDetails/{req_id}"
+            try:
+                r = requests.get(api_url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"}, timeout=timeout)
+                if r.status_code == 200:
+                    d = r.json()
+                    title = d.get("Title", "")
+                    if "jpmc" in domain:
+                        company = "JPMorganChase"
+                    else:
+                        company = d.get("Organization") or "Oracle Cloud"
+                    desc_html = d.get("ExternalDescriptionStr") or d.get("ShortDescriptionStr") or ""
+                    soup = BeautifulSoup(desc_html, "html.parser")
+                    text = soup.get_text(separator="\n")
+                    lines = [line.strip() for line in text.splitlines() if line.strip()]
+                    return "\n".join(lines), title, company, False
+            except Exception:
+                pass
+
+    # 2.85 Apple Jobs API
+    if "jobs.apple.com" in domain and "/details/" in parsed.path:
+        m = re.search(r"/details/([^/?#]+)", parsed.path)
+        if m:
+            job_number = m.group(1)
+            api_url = f"https://jobs.apple.com/api/v1/jobDetails/{job_number}"
+            try:
+                r = requests.get(
+                    api_url,
+                    headers={"User-Agent": USER_AGENT, "Accept": "application/json"},
+                    timeout=timeout,
+                )
+                if r.status_code == 200:
+                    res = (r.json() or {}).get("res") or {}
+                    title = (res.get("postingTitle") or "").strip()
+                    req_id = (res.get("reqId") or job_number).strip()
+                    sections = []
+                    if title:
+                        sections.append(f"Title: {title}")
+                    sections.append("Company: Apple")
+                    sections.append(f"Req ID: {req_id}")
+                    for label, key in (
+                        ("SUMMARY:", "jobSummary"),
+                        ("DESCRIPTION:", "description"),
+                        ("MINIMUM QUALIFICATIONS:", "minimumQualifications"),
+                        ("PREFERRED QUALIFICATIONS:", "preferredQualifications"),
+                    ):
+                        val = res.get(key)
+                        if val and isinstance(val, str) and val.strip():
+                            clean = BeautifulSoup(val, "html.parser").get_text(separator="\n").strip()
+                            sections.append(f"\n{label}\n{clean}")
+                    full_jd = "\n".join(sections).strip()
+                    if title and len(full_jd) > 100:
+                        return full_jd, title, "Apple", False
+            except Exception:
+                pass
+
     # 3. Direct HTML fetch with BeautifulSoup cleanup
     headers = {"User-Agent": USER_AGENT, "Accept-Language": "en-US,en;q=0.9"}
     resp = requests.get(url, headers=headers, timeout=timeout)
@@ -178,8 +238,39 @@ def fetch_url_content(url: str, timeout: int = 25) -> tuple[str, str, str, bool]
     soup = BeautifulSoup(html, "html.parser")
     raw_page_title = soup.title.string.strip() if soup.title and soup.title.string else ""
 
-    # Detect closed/expired postings
-    page_text_lower = html.lower()
+    # 2.9 Schema.org JSON-LD (e.g. Phenom People / Stanford / Sutter / Eightfold Microsoft)
+    for s in soup.find_all("script", type="application/ld+json"):
+        try:
+            d = json.loads(s.string)
+            if d.get("@type") == "JobPosting":
+                jp_title = d.get("title", "")
+                org = d.get("hiringOrganization", {})
+                jp_company = org.get("name", "") if isinstance(org, dict) else (org if isinstance(org, str) else "")
+                if not jp_company and "microsoft.com" in domain:
+                    jp_company = "Microsoft"
+                desc_html = d.get("description", "")
+                if desc_html:
+                    from html import unescape
+                    desc_soup = BeautifulSoup(unescape(desc_html), "html.parser")
+                    for tag in desc_soup(["script", "style", "noscript"]):
+                        tag.decompose()
+                    desc_text = desc_soup.get_text(separator="\n")
+                    lines = [line.strip() for line in desc_text.splitlines() if line.strip()]
+                    cleaned_desc = "\n".join(lines) if lines else desc_text.strip()
+                    if len(cleaned_desc) > 100:
+                        return cleaned_desc, jp_title, jp_company, False
+        except Exception:
+            pass
+
+    for tag in soup(["script", "style", "noscript", "svg", "nav", "footer", "template"]):
+        tag.decompose()
+
+    text = soup.get_text(separator="\n")
+    cleaned_lines = [line.strip() for line in text.splitlines() if line.strip()]
+    full_text = "\n".join(cleaned_lines)
+
+    # Detect closed/expired postings on visible page text
+    page_text_lower = full_text.lower()
     is_closed = any(
         phrase in page_text_lower
         for phrase in [
@@ -190,13 +281,6 @@ def fetch_url_content(url: str, timeout: int = 25) -> tuple[str, str, str, bool]
             "posting is no longer active",
         ]
     )
-
-    for tag in soup(["script", "style", "noscript", "svg", "nav", "footer"]):
-        tag.decompose()
-
-    text = soup.get_text(separator="\n")
-    cleaned_lines = [line.strip() for line in text.splitlines() if line.strip()]
-    full_text = "\n".join(cleaned_lines)
 
     title = ""
     company = ""
@@ -316,9 +400,9 @@ def ingest_all_pending(tracker_path: str = "output/tracker.json", work_dir: str 
         print(f"Ingesting {jid} ({job.source})...")
         try:
             jd = parse_jd(jid, job.source, work_dir=work_path)
-            if jd.company and not job.company:
+            if jd.company:
                 job.company = jd.company
-            if jd.title and not job.title:
+            if jd.title:
                 job.title = jd.title
             if jd.closed:
                 job.status = "blocked"

@@ -396,9 +396,9 @@ def generate_all_alignments(
         if not job or job.status == "blocked":
             continue
 
-        if "company" in cfg and not job.company:
+        if "company" in cfg and cfg["company"]:
             job.company = cfg["company"]
-        if "title" in cfg and not job.title:
+        if "title" in cfg and cfg["title"]:
             job.title = cfg["title"]
 
         slug = cfg["slug"]

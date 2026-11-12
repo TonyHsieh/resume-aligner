@@ -189,28 +189,37 @@ def push_to_sheets(
         "Tailored Resume File",
         "Recruiter Search Query / Link",
         "Recruiter Intro Message",
+        "Notes",
     ]
 
     items = []
     rows = [headers]
 
-    active_jobs = [j for j in tracker.jobs.values() if j.status != "blocked"]
-
-    for idx, job in enumerate(active_jobs):
-        resume_path = job.outputs.get("resume", "")
-
-        # Precise, company-isolated matching for recruiter intro note & search query
-        intro_note, search_query = match_recruiter_intro(job, intros)
-
-        item_dict = {
-            "Status": job.status.capitalize(),
-            "Company": job.company or "",
-            "Role Title": job.title or "",
-            "Job Posting URL": job.source,
-            "Tailored Resume File": resume_path,
-            "Recruiter Search Query / Link": search_query,
-            "Recruiter Intro Message": intro_note,
-        }
+    for idx, job in enumerate(tracker.jobs.values()):
+        if job.status == "blocked":
+            item_dict = {
+                "Status": "Blocked",
+                "Company": job.company or "",
+                "Role Title": job.title or "",
+                "Job Posting URL": job.source,
+                "Tailored Resume File": "[CLOSED / EXPIRED]",
+                "Recruiter Search Query / Link": "",
+                "Recruiter Intro Message": "",
+                "Notes": job.note or "Posting is closed / expired on company portal",
+            }
+        else:
+            resume_path = job.outputs.get("resume", "")
+            intro_note, search_query = match_recruiter_intro(job, intros)
+            item_dict = {
+                "Status": job.status.capitalize(),
+                "Company": job.company or "",
+                "Role Title": job.title or "",
+                "Job Posting URL": job.source,
+                "Tailored Resume File": resume_path,
+                "Recruiter Search Query / Link": search_query,
+                "Recruiter Intro Message": intro_note,
+                "Notes": job.note or "",
+            }
         items.append(item_dict)
         rows.append([item_dict[h] for h in headers])
 

@@ -57,7 +57,7 @@ def parse_master_resume(html_path: Path | str) -> FactLedger:
     soup = BeautifulSoup(content, "html.parser")
 
     # Strip HTML comments so commented-out text is ignored unless explicitly restored in addendum
-    for comment in soup.find_all(text=lambda text: isinstance(text, Comment)):
+    for comment in soup.find_all(string=lambda text: isinstance(text, Comment)):
         comment.extract()
 
     # Base contact info
@@ -136,6 +136,8 @@ def parse_master_resume(html_path: Path | str) -> FactLedger:
             "Budgeting",
             "Budgeting & FinOps Governance",
             "Regulatory Compliance",
+            "HIPAA Compliance & PHI Data Protection",
+            "Healthcare Systems Architecture",
             "AI Implementation & Agentic Workflows",
             "Change Leadership",
             "Change Management",
@@ -220,12 +222,13 @@ def parse_master_resume(html_path: Path | str) -> FactLedger:
             dates="May 2013 – January 2021",
             start_year=2013,
             end_year=2021,
-            tags=["management", "middleware", "oncall", "operations", "healthcare", "architecture"],
+            tags=["management", "middleware", "oncall", "operations", "healthcare", "architecture", "compliance", "hipaa", "phi"],
             bullets=[
                 FactBullet(
                     id="fact_bsc_mid_01",
-                    raw_text="Built, coached, and managed engineering team responsible for 24x7 operation, reliability, and lifecycle strategy of business-critical middleware infrastructure for key healthcare solutions.",
-                    scope="People Management & 24x7 Operations",
+                    raw_text="Built, coached, and managed engineering team responsible for 24x7 operation, reliability, and lifecycle strategy of business-critical middleware infrastructure for key HIPAA and PHI compliant healthcare solutions.",
+                    scope="People Management & 24x7 Operations (HIPAA/PHI Compliant Healthcare Solutions)",
+                    tools=["HIPAA Compliance", "PHI Data Protection", "Middleware Infrastructure"],
                     metrics=["Team of 10–15 engineers", "24x7 coverage model"],
                 ),
                 FactBullet(
@@ -305,6 +308,12 @@ def parse_master_resume(html_path: Path | str) -> FactLedger:
                     raw_text="Architected and implemented browser-based Flash social and music-oriented MMO (www.planetcazmo.com).",
                     tools=["Flash", "MMO Architecture", "Real-Time Networking"],
                     scope="MMO & Virtual World Architecture",
+                ),
+                FactBullet(
+                    id="fact_game_05",
+                    raw_text="Developed JavaScript and DynamoDB backend APIs for NFT-based crypto game and commercial applications.",
+                    tools=["JavaScript", "DynamoDB", "APIs"],
+                    scope="Backend APIs & Emerging Web3 Technologies",
                 ),
             ],
         ),

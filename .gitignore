@@ -14,12 +14,17 @@ devenv.local.yaml
 inputs/
 output/
 work/
+context/
+*-context.html
+snapshots/
+archives/
 .env
 .venv/
 __pycache__/
 *.pyc
 .pytest_cache/
 *.egg-info/
+~$*.docx
 
 # Alignment configurations & application targets
 src/resume_factory/alignments*.py

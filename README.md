@@ -21,6 +21,8 @@ It is built around strict engineering principles: **zero hallucination**, **grou
 - [Generated Artifacts](#generated-artifacts)
 - [Google Sheets Webhook & Custom Columns](#google-sheets-webhook--custom-columns)
 - [Privacy & Job Application Confidentiality](#privacy--job-application-confidentiality)
+- [Personal Artifact Snapshots & Backups](#personal-artifact-snapshots--backups)
+- [Session Context Reports (`context/`)](#session-context-reports-context)
 - [Fact Ledger & Zero-Hallucination Gate](#fact-ledger--zero-hallucination-gate)
 - [Testing & Quality Assurance](#testing--quality-assurance)
 
@@ -136,9 +138,24 @@ resume-aligner/
 │       ├── alignment_report.md    # Requirement-by-requirement alignment matrix
 │       └── questions.md           # 3 clarifying questions for interview prep
 │
-└── tests/                         # Automated test suite (16 passing tests)
+├── context/                       # Historical session context reports (gitignored)
+│   ├── save-current-context/      # Local copy of context save skill
+│   └── <timestamp>-context.html   # Standalone session reports & resumption roadmaps
+│
+├── snapshots/                     # Personal artifact archives & manifests (gitignored)
+│   ├── resume-aligner-snapshot-<timestamp>.tar.gz
+│   └── resume-aligner-snapshot-<timestamp>.manifest.json
+│
+├── .agents/skills/                # Antigravity & Agent workspace skills
+│   └── snapshot-artifacts/        # Skill to create integrity-verified backups of personal data
+│       ├── SKILL.md               # Skill definition and instructions
+│       └── scripts/               # snapshot.py and snapshot.sh utilities
+│
+└── tests/                         # Automated test suite (33 passing tests)
+    ├── test_ledger.py             # Fact ledger parsing, HIPAA/PHI compliance & contact tests
     ├── test_render_docx.py        # Roundtrip golden tests against SAMPLE_FORMAT.docx
     ├── test_sheets.py             # Webhook serialization, schema mapping & recruiter isolation tests
+    ├── test_snapshot.py           # Snapshot archiving, integrity, exclusion & security tests
     └── test_tracker.py            # Tracker state, hashing, and stale detection tests
 ```
 
@@ -338,6 +355,8 @@ The factory enforces strict privacy controls to guarantee that your active job s
 3. **Double-Layered Defense**:
    - `.gitignore` explicitly filters `src/resume_factory/alignments*.py` and `src/resume_factory/builder_data.py`. If an alignment script is ever placed in `src/`, Git will refuse to track or commit it.
    - Webhook credentials (`inputs/sheets_webhook.txt`) and personal master resume inputs (`inputs/`) are similarly gitignored.
+4. **Personal Session Contexts & Snapshots (`context/`, `snapshots/`)**:
+   - All historical session context reports (`context/*-context.html`) and artifact archive backups (`snapshots/*.tar.gz`) are strictly gitignored to preserve privacy across sessions and prevent accidental leakage of personal data to remotes.
 
 ---
 
@@ -392,6 +411,64 @@ Whenever you run `./rf jobs align`, the factory automatically enforces your dire
 
 ---
 
+## Personal Artifact Snapshots & Backups
+
+Because all personalized data and created artifacts are intentionally gitignored for privacy, the repository includes a dedicated workspace skill and automation tool: **`snapshot-artifacts`** (`.agents/skills/snapshot-artifacts/`).
+
+This tool packages all untracked personalized inputs, generated resumes, and work history into an integrity-verified, timestamped `.tar.gz` archive with a companion JSON manifest.
+
+### What is Included
+- `inputs/`: Master resume, verified facts ledger, directives, job sources, webhook configs.
+- `output/`: All tailored resumes (HTML, DOCX, review copies), fit matrices, tracker database, index.
+- `work/`: Intermediate fetched JDs, raw scrapes, candidate requirements.
+- `context/`: Historical session resumption reports and architecture logs.
+- `src/resume_factory/alignments*.py`: Custom alignment configurations (if present).
+- `src/resume_factory/builder_data.py`: Custom builder data modules (if present).
+- `.env`: Environment variables and secrets (if present).
+
+### Strict Exclusions
+Temporary and reproducible files are excluded: `.git`, `__pycache__`, `*.pyc`, `.pytest_cache`, `.devenv`, `.direnv`, `.venv`, and existing `snapshots/`.
+
+### Snapshot Commands
+
+```bash
+# 1. Create a timestamped snapshot in snapshots/
+python3 .agents/skills/snapshot-artifacts/scripts/snapshot.py
+# (or use the helper script: .agents/skills/snapshot-artifacts/scripts/snapshot.sh)
+
+# 2. Verify archive integrity and manifest hash
+python3 .agents/skills/snapshot-artifacts/scripts/snapshot.py --verify snapshots/resume-aligner-snapshot-<TIMESTAMP>.tar.gz
+
+# 3. List files stored inside a snapshot
+python3 .agents/skills/snapshot-artifacts/scripts/snapshot.py --list snapshots/resume-aligner-snapshot-<TIMESTAMP>.tar.gz
+
+# 4. Restore files safely (with path-traversal protection)
+# Safe restore (does not overwrite existing files):
+python3 .agents/skills/snapshot-artifacts/scripts/snapshot.py --restore snapshots/resume-aligner-snapshot-<TIMESTAMP>.tar.gz
+
+# Overwrite existing files:
+python3 .agents/skills/snapshot-artifacts/scripts/snapshot.py --restore snapshots/resume-aligner-snapshot-<TIMESTAMP>.tar.gz --force
+
+# Restore to an alternate directory or external backup path:
+python3 .agents/skills/snapshot-artifacts/scripts/snapshot.py --restore snapshots/resume-aligner-snapshot-<TIMESTAMP>.tar.gz --target-dir /path/to/extracted/
+
+# 5. Create snapshot to a custom external destination
+python3 .agents/skills/snapshot-artifacts/scripts/snapshot.py --outdir /mnt/c/Users/<user>/Backups/
+```
+
+---
+
+## Session Context Reports (`context/`)
+
+Technical context, architectural decisions, solved incidents, and prioritized resumption roadmaps from active AI agent sessions are captured as standalone HTML reports formatted as `context/<YYYY-MM-DD-HHMM>-context.html`.
+
+- **Personal & Confidential:** The `context/` directory and all `*-context.html` files are gitignored.
+- **Self-Contained:** Each HTML report embeds all required styling and layouts for immediate offline viewing in any browser.
+- **Resumption Skill:** Triggered via the `save-current-context` skill (invoked with `"save context"`, `"save session for tomorrow"`, or `"prepare for resumption"`).
+- **Archiving:** The `snapshot-artifacts` tool automatically archives the entire `context/` directory during backup operations.
+
+---
+
 ## Fact Ledger & Zero-Hallucination Gate
 
 The factory strictly prevents AI hallucinations by decoupling fact storage from language generation.
@@ -421,7 +498,9 @@ Or run directly through devenv test:
 devenv test
 ```
 
-The test suite covers **16 passing automated tests**:
+The test suite covers **33 passing automated tests**:
+- **`tests/test_ledger.py`**: Validates fact ledger compilation, HIPAA/PHI compliance tags, mobile/email contact parsing, and independent contractor additions.
 - **`tests/test_render_docx.py`**: Validates document margins, font sizes, style run inheritance, bottom borders, and paragraph-level cloning against `SAMPLE_FORMAT.docx`.
 - **`tests/test_tracker.py`**: Tests URL canonicalization, ID stability, Google Doc parsing, idempotency, and stale detection when JDs or master facts change.
 - **`tests/test_sheets.py`**: Tests bi-directional Google Apps Script payload serialization, column schema mapping, canonical URL matching, and company-isolation guards preventing cross-company outreach note contamination.
+- **`tests/test_snapshot.py`**: Validates artifact discovery, file exclusions (`__pycache__`, `.pytest_cache`, `.git`), tarball compilation, SHA-256 manifest integrity, error handling on empty directories, safe restore, and directory-traversal security defense.
