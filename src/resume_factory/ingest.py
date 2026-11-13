@@ -182,11 +182,30 @@ def fetch_url_content(url: str, timeout: int = 25) -> tuple[str, str, str, bool]
                     title = d.get("Title", "")
                     if "jpmc" in domain:
                         company = "JPMorganChase"
+                    elif "ecge" in domain:
+                        company = "Blue Shield of California"
+                    elif "hcjy" in domain:
+                        company = "CooperCompanies"
                     else:
                         company = d.get("Organization") or "Oracle Cloud"
-                    desc_html = d.get("ExternalDescriptionStr") or d.get("ShortDescriptionStr") or ""
-                    soup = BeautifulSoup(desc_html, "html.parser")
-                    text = soup.get_text(separator="\n")
+                    sections = []
+                    for label, key in (
+                        ("DESCRIPTION", "ExternalDescriptionStr"),
+                        ("RESPONSIBILITIES", "ExternalResponsibilitiesStr"),
+                        ("QUALIFICATIONS", "ExternalQualificationsStr"),
+                    ):
+                        val = d.get(key)
+                        if val and isinstance(val, str) and val.strip():
+                            soup = BeautifulSoup(val, "html.parser")
+                            clean = soup.get_text(separator="\n").strip()
+                            if clean:
+                                sections.append(f"{label}:\n{clean}")
+                    if not sections and d.get("ShortDescriptionStr"):
+                        soup = BeautifulSoup(d.get("ShortDescriptionStr"), "html.parser")
+                        clean = soup.get_text(separator="\n").strip()
+                        if clean:
+                            sections.append(clean)
+                    text = "\n\n".join(sections)
                     lines = [line.strip() for line in text.splitlines() if line.strip()]
                     return "\n".join(lines), title, company, False
             except Exception:
@@ -228,6 +247,59 @@ def fetch_url_content(url: str, timeout: int = 25) -> tuple[str, str, str, bool]
                         return full_jd, title, "Apple", False
             except Exception:
                 pass
+
+    # 2.86 Mercor Careers (__NEXT_DATA__)
+    if "mercor.com" in domain and "/careers/" in parsed.path:
+        try:
+            r = requests.get(
+                url,
+                headers={"User-Agent": USER_AGENT, "Accept-Language": "en-US,en;q=0.9"},
+                timeout=timeout,
+            )
+            if r.status_code == 200:
+                soup = BeautifulSoup(r.text, "html.parser")
+                tag = soup.find("script", id="__NEXT_DATA__")
+                if tag and tag.string:
+                    data = json.loads(tag.string)
+                    jobs = data.get("props", {}).get("pageProps", {}).get("jobs", [])
+                    target_job = None
+                    m = re.search(r"/careers/([a-f0-9-]+)", parsed.path)
+                    target_id = m.group(1) if m else None
+                    if target_id and jobs:
+                        for j in jobs:
+                            if j.get("id") == target_id:
+                                target_job = j
+                                break
+                    if not target_job and jobs:
+                        target_job = jobs[0]
+                    if target_job:
+                        title = target_job.get("title", "")
+                        company = "Mercor"
+                        desc_text = target_job.get("descriptionPlain")
+                        if not desc_text and target_job.get("descriptionHtml"):
+                            desc_soup = BeautifulSoup(target_job.get("descriptionHtml"), "html.parser")
+                            desc_text = desc_soup.get_text(separator="\n")
+                        sections = []
+                        if title:
+                            sections.append(f"Title: {title}")
+                        sections.append("Company: Mercor")
+                        loc = target_job.get("location")
+                        if loc:
+                            sections.append(f"Location: {loc}")
+                        workplace = target_job.get("workplaceType")
+                        if workplace:
+                            sections.append(f"Workplace Type: {workplace}")
+                        comp = target_job.get("compensation")
+                        if comp:
+                            sections.append(f"Compensation: {comp}")
+                        if desc_text:
+                            sections.append(f"\nDESCRIPTION:\n{desc_text.strip()}")
+                        full_jd = "\n".join(sections).strip()
+                        lines = [line.strip() for line in full_jd.splitlines() if line.strip()]
+                        if len(lines) > 5:
+                            return "\n".join(lines), title, company, False
+        except Exception:
+            pass
 
     # 3. Direct HTML fetch with BeautifulSoup cleanup
     headers = {"User-Agent": USER_AGENT, "Accept-Language": "en-US,en;q=0.9"}
