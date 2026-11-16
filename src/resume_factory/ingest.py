@@ -301,6 +301,76 @@ def fetch_url_content(url: str, timeout: int = 25) -> tuple[str, str, str, bool]
         except Exception:
             pass
 
+    # 2.87 Meta Careers (metacareers.com)
+    if "metacareers.com" in domain and "/profile/job_details/" in parsed.path:
+        try:
+            r = requests.get(url, timeout=timeout)
+            if r.status_code == 200:
+                soup = BeautifulSoup(r.text, "html.parser")
+                for s in soup.find_all("script"):
+                    st = (s.string or s.get_text() or "").strip()
+                    if "JobPosting" in st:
+                        try:
+                            d = json.loads(st)
+                            if d.get("@type") == "JobPosting":
+                                title = d.get("title", "")
+                                company = "Meta"
+                                sections = [f"Job Title: {title}", "Company: Meta"]
+
+                                # Locations
+                                locs = d.get("jobLocation", [])
+                                if isinstance(locs, list):
+                                    loc_strs = []
+                                    for l in locs:
+                                        addr = l.get("address", {})
+                                        locality = addr.get("addressLocality")
+                                        region = addr.get("addressRegion")
+                                        if locality and region:
+                                            loc_strs.append(f"{locality}, {region}")
+                                        elif locality:
+                                            loc_strs.append(locality)
+                                    if loc_strs:
+                                        sections.append(f"Locations: {'; '.join(loc_strs)}")
+
+                                # Salary
+                                sal = d.get("baseSalary", {})
+                                if sal and isinstance(sal, dict):
+                                    val = sal.get("value", {})
+                                    min_v = val.get("minValue")
+                                    max_v = val.get("maxValue")
+                                    unit = val.get("unitText", "YEAR")
+                                    if min_v and max_v:
+                                        sections.append(f"Salary Range: ${min_v:,.0f} - ${max_v:,.0f} / {unit}")
+
+                                from html import unescape
+
+                                # Description
+                                desc = d.get("description", "")
+                                if desc:
+                                    clean_desc = BeautifulSoup(unescape(desc), "html.parser").get_text(separator="\n").strip()
+                                    sections.append(f"\nDescription:\n{clean_desc}")
+
+                                # Responsibilities
+                                resp = d.get("responsibilities", "")
+                                if resp:
+                                    clean_resp = BeautifulSoup(unescape(resp), "html.parser").get_text(separator="\n").strip()
+                                    sections.append(f"\nResponsibilities:\n{clean_resp}")
+
+                                # Qualifications
+                                qual = d.get("qualifications", "")
+                                if qual:
+                                    clean_qual = BeautifulSoup(unescape(qual), "html.parser").get_text(separator="\n").strip()
+                                    sections.append(f"\nQualifications:\n{clean_qual}")
+
+                                full_text = "\n".join(sections)
+                                lines = [line.strip() for line in full_text.splitlines() if line.strip()]
+                                if len(lines) > 5 and title:
+                                    return "\n".join(lines), title, company, False
+                        except Exception:
+                            pass
+        except Exception:
+            pass
+
     # 3. Direct HTML fetch with BeautifulSoup cleanup
     headers = {"User-Agent": USER_AGENT, "Accept-Language": "en-US,en;q=0.9"}
     resp = requests.get(url, headers=headers, timeout=timeout)

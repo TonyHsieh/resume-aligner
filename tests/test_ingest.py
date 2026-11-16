@@ -139,3 +139,40 @@ def test_fetch_mercor_next_data(monkeypatch):
     assert "Lead the Applied AI evaluations engineering team." in text
 
 
+def test_fetch_metacareers_schema_org(monkeypatch):
+    fake_html = """<!DOCTYPE html><html><head>
+    <script>
+    {
+        "@context": "https://schema.org",
+        "@type": "JobPosting",
+        "title": "Engineering Manager - Strategic Infrastructure Capacity Planning",
+        "jobLocation": [
+            {"address": {"addressLocality": "Menlo Park", "addressRegion": "California"}}
+        ],
+        "baseSalary": {
+            "value": {"minValue": 200000, "maxValue": 275000, "unitText": "YEAR"}
+        },
+        "description": "<p>Lead capacity engineering for global infrastructure.</p>",
+        "responsibilities": "<p>Capacity planning for all of Meta software and services.</p>",
+        "qualifications": "<p>15+ years experience in distributed systems and platform operations.</p>"
+    }
+    </script></head><body></body></html>"""
+
+    def fake_get(url, headers=None, timeout=None):
+        return _DummyResponse(status_code=200, text=fake_html)
+
+    monkeypatch.setattr(ingest.requests, "get", fake_get)
+    text, title, company, is_closed = ingest.fetch_url_content(
+        "https://www.metacareers.com/profile/job_details/1585750969597972/"
+    )
+    assert title == "Engineering Manager - Strategic Infrastructure Capacity Planning"
+    assert company == "Meta"
+    assert is_closed is False
+    assert "Menlo Park, California" in text
+    assert "$200,000 - $275,000 / YEAR" in text
+    assert "Lead capacity engineering for global infrastructure." in text
+    assert "Capacity planning for all of Meta software and services." in text
+    assert "15+ years experience in distributed systems and platform operations." in text
+
+
+
