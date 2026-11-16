@@ -87,7 +87,6 @@ def parse_master_resume(html_path: Path | str) -> FactLedger:
             "C",
             "Scala",
             "Assembly",
-            "n8n",
             "Ansible",
             "3D real-time animation engine/systems",
         ],
@@ -129,7 +128,6 @@ def parse_master_resume(html_path: Path | str) -> FactLedger:
             "Python custom agents",
             "AI Implementation",
             "AI Implementation & Agentic Workflows",
-            "n8n",
             "Ansible",
         ],
         "leadership_and_ops": [
@@ -511,7 +509,7 @@ def parse_master_resume(html_path: Path | str) -> FactLedger:
     ]
 
     addendum = {
-        "agentic_ai_context": "Hands-on applied personal/exploratory development using Python, OpenAI Codex, GitHub Copilot, Ollama, custom agents, n8n.",
+        "agentic_ai_context": "Hands-on applied personal/exploratory development using Python, OpenAI Codex, GitHub Copilot, Ollama, custom agents.",
         "nix_dev_env_context": "Hands-on exploration of Nix and dev-env for reproducible developer environments.",
         "oncall_middleware_context": "24x7 incident management, severity escalations, and PIRs at Blue Shield (10–15 engineers).",
         "bluestack_scale": "80–100 internal developers and stakeholders supported by BlueStack IDP.",

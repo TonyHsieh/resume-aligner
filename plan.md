@@ -131,7 +131,7 @@ resume-aligner/
 - Master resume is **https://hsieh.org/resume/** (hand-written HTML). The fetcher snapshots it to `inputs/master_resume.html` so runs are reproducible, then parses it into `facts.yaml`.
 - **The parser must ignore HTML comments.** The page has deliberately hidden content (the LucasArts/Accolade/APL roles, the home address, and the graduation year). That content must never reach the ledger or the output.
 - Merge **all clarification answers** as `facts_addendum.md` (e.g., BlueStack IDP = Kubernetes, GitHub Actions, Kargo, ArgoCD, Backstage, Atlantis/OpenTofu; CI/CD = GitHub Actions + Bitbucket Pipelines; IDP serves 80–100 people; 24x7 on-call, team of 10–15 = Blue Shield middleware era only; Agentic AI and Nix = personal projects; no impact metrics).
-- The master lists tools that need no addendum: Bitbucket, SonarQube, Artifactory, Azure, AWS Serverless, Ollama, n8n, Ansible, plus the languages and databases in the skills lines.
+- The master lists tools that need no addendum: Bitbucket, SonarQube, Artifactory, Azure, AWS Serverless, Ollama, Ansible, plus the languages and databases in the skills lines.
 - Interactive "ledger review" step: dump `facts.yaml` for you to correct once. You said you'll manually double-check; this makes that review cheaper.
 
 ### Phase 3 — JD ingestion
