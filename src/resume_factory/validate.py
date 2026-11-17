@@ -94,7 +94,7 @@ def validate_resume(
     resume_full_text = " ".join(
         [resume.summary] + [b.text for r in (resume.roles + resume.additional_roles) for b in r.bullets]
     )
-    allowed_metrics = ["40%", "80%", "80–100", "80-100", "80", "100", "10–15", "10-15", "10", "15", "14", "24x7", "24/7", "$1 million", "$1M", "1 million", ">1 million", "10+", "15+", "2", "3", "5", "1", "4"]
+    allowed_metrics = ["40%", "80%", "80–100", "80-100", "80", "100", "10–15", "10-15", "10", "15", "12", "9–10", "9-10", "9", "14", "24x7", "24/7", "$1 million", "$1M", "1 million", ">1 million", "10+", "15+", "2", "3", "5", "1", "4"]
     numbers_in_resume = re.findall(r"\b(?:\d+(?:\.\d+)?%?|\$\d+(?:\s?million|\s?M)?|\d+–\d+|\d+-\d+)\b", resume_full_text)
     for num in numbers_in_resume:
         clean_num = num.strip("%")

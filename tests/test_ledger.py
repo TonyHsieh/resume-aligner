@@ -109,6 +109,52 @@ def test_validate_resume_rejects_mismatched_phone_number() -> None:
     assert any("phone" in e.lower() for e in errs)
 
 
+def test_validate_resume_allows_confirmed_team_breakdown_metrics() -> None:
+    from resume_factory.model import Labeled, Resume, Role
+    from resume_factory.validate import validate_resume
+
+    ledger = FactLedger(
+        name="Test Candidate",
+        phone="(555) 010-1234",
+        email="candidate@example.com",
+        education=[],
+        skills={},
+        roles=[
+            FactRole(
+                id="role_bsc_mid",
+                company="Blue Shield of California",
+                title="Engineering Senior Manager",
+                dates="May 2013 – January 2021",
+                start_year=2013,
+                end_year=2021,
+                bullets=[FactBullet(id="b1", raw_text="12-engineer team (9–10 full-time, 2 contractors).")],
+            )
+        ],
+    )
+    resume = Resume(
+        name="Test Candidate",
+        headline="Principal Technologist",
+        contact="mobile: (555) 010-1234  •  e-mail: candidate@example.com",
+        summary="Managed a 12-engineer team (9–10 full-time employees, 2 contractors) in 24x7 operations.",
+        expertise=[],
+        roles=[
+            Role(
+                company="Blue Shield of California",
+                dates="May 2013 – January 2021",
+                title="Engineering Senior Manager",
+                bullets=[
+                    Labeled("Team Leadership:", "Managed a 12-engineer team (9–10 full-time, 2 contractors) across 24x7 operations.")
+                ],
+            )
+        ],
+        additional_roles=[],
+        education=[],
+        skills=[],
+    )
+    ok, errs = validate_resume(resume, ledger, ["b1"])
+    assert ok is True, f"Validation failed with unexpected errors: {errs}"
+
+
 def test_load_fact_ledger_uses_facts_yaml_as_single_source_of_truth(tmp_path: Path) -> None:
     facts_file = tmp_path / "facts.yaml"
     facts_file.write_text(
