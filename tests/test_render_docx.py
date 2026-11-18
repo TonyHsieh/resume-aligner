@@ -129,3 +129,15 @@ def test_markers_stripped_in_clean_and_bold_in_review(tmp_path):
 
     assert "Kubernetes" not in bold_text(clean)
     assert {"Kubernetes", "changed words", "Platform", "C"} <= bold_text(review)
+
+
+def test_italic_markers_stripped_and_styled(tmp_path):
+    r = _tiny()
+    r.summary = "Built *find-a-doctor* and studied *Zero to Hero*."
+    clean = render_resume(r, tmp_path / "clean_italic.docx")
+    doc = docx.Document(str(clean))
+    full_text = "\n".join(p.text for p in doc.paragraphs)
+    assert "*" not in full_text
+    assert "Built find-a-doctor and studied Zero to Hero." in full_text
+    italic_runs = {run.text for p in doc.paragraphs for run in p.runs if run.italic}
+    assert {"find-a-doctor", "Zero to Hero"} <= italic_runs

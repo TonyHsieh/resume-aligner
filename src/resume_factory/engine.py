@@ -431,7 +431,7 @@ def generate_all_alignments(
             lead_text = ", ".join(key_leadership_skills) + "."
             has_lead = False
             for idx, s in enumerate(enhanced_skills):
-                if any(k in s.label.lower() for k in ["leadership", "management", "operations"]):
+                if any(k in s.label.lower() for k in ["leadership", "governance"]):
                     enhanced_skills[idx] = Labeled(s.label, lead_text)
                     has_lead = True
                     break

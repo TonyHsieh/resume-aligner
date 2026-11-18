@@ -7,6 +7,7 @@ mirrors the sample exactly (PlainText style + Times New Roman run overrides).
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from xml.sax.saxutils import escape
 
@@ -58,10 +59,16 @@ def _run(text: str, bold: bool = False, italic: bool = False, size: int = SZ_BOD
 def _marked_runs(
     text: str, review: bool, bold: bool = False, italic: bool = False, size: int = SZ_BODY
 ) -> str:
-    """Runs for ``text``; ``**changed**`` spans are bold only in review mode."""
+    """Runs for ``text``; ``**changed**`` spans are bold only in review mode, and ``*text*`` renders as italic."""
     out = []
     for segment, changed in split_marked(text):
-        out.append(_run(segment, bold=bold or (review and changed), italic=italic, size=size))
+        for ipart in re.split(r"(\*[^\s*][^*]*?\*)", segment):
+            if not ipart:
+                continue
+            if len(ipart) >= 2 and ipart.startswith("*") and ipart.endswith("*"):
+                out.append(_run(ipart[1:-1], bold=bold or (review and changed), italic=True, size=size))
+            else:
+                out.append(_run(ipart, bold=bold or (review and changed), italic=italic, size=size))
     return "".join(out)
 
 

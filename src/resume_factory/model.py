@@ -49,8 +49,11 @@ def split_marked(text: str) -> list[tuple[str, bool]]:
     return segments or [("", False)]
 
 
+_ITALIC_RE = re.compile(r"\*([^\s*][^*]*?)\*")
+
+
 def strip_marks(text: str) -> str:
-    return text.replace(CHANGE_MARK, "")
+    return _ITALIC_RE.sub(r"\1", text.replace(CHANGE_MARK, ""))
 
 
 _WS = re.compile(r"\s+")
