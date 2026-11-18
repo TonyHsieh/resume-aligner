@@ -429,13 +429,18 @@ def generate_all_alignments(
         enhanced_skills = list(cfg["skills"])
         if key_leadership_skills:
             lead_text = ", ".join(key_leadership_skills) + "."
-            has_lead = False
-            for idx, s in enumerate(enhanced_skills):
-                if any(k in s.label.lower() for k in ["leadership", "governance"]):
-                    enhanced_skills[idx] = Labeled(s.label, lead_text)
-                    has_lead = True
-                    break
-            if not has_lead:
+            target_idx = next(
+                (i for i, s in enumerate(enhanced_skills) if any(k in s.label.lower() for k in ("key leadership", "leadership & governance"))),
+                None,
+            )
+            if target_idx is None:
+                target_idx = next(
+                    (i for i, s in enumerate(enhanced_skills) if any(k in s.label.lower() for k in ("leadership", "governance"))),
+                    None,
+                )
+            if target_idx is not None:
+                enhanced_skills[target_idx] = Labeled(enhanced_skills[target_idx].label, lead_text)
+            else:
                 enhanced_skills.append(Labeled("Key Leadership & Governance:", lead_text))
 
         # 1. Build Resume Object
