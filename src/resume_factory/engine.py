@@ -406,11 +406,13 @@ def generate_all_alignments(
         directives_path = Path("inputs/directives.yaml")
         cutoff_year = 2011
         key_leadership_skills = []
+        always_emphasize_expertise = []
         if directives_path.exists():
             import yaml
             dirs = yaml.safe_load(directives_path.read_text(encoding="utf-8")) or {}
             cutoff_year = dirs.get("ageism", {}).get("cutoff_year", 2011)
             key_leadership_skills = dirs.get("skills_emphasis", {}).get("key_leadership_skills", [])
+            always_emphasize_expertise = dirs.get("skills_emphasis", {}).get("always_emphasize_expertise", [])
 
         # Apply 15-year ageism filter to chronological roles (preserving authorized prior heritage roles)
         import re
@@ -443,13 +445,27 @@ def generate_all_alignments(
             else:
                 enhanced_skills.append(Labeled("Key Leadership & Governance:", lead_text))
 
+        # Enhance Areas of Expertise with directives always_emphasize_expertise
+        enhanced_expertise = list(cfg["expertise"])
+        for exp_item in always_emphasize_expertise:
+            if not any(exp_item.lower() in e.lower() for e in enhanced_expertise):
+                # Replace generic short AI & Agentic tag if present, else append
+                generic_idx = next(
+                    (i for i, e in enumerate(enhanced_expertise) if e.lower() in ("ai & agentic workflows", "ai-assisted & agentic workflows", "ai & agentic product workflows")),
+                    None,
+                )
+                if generic_idx is not None:
+                    enhanced_expertise[generic_idx] = exp_item
+                elif not any(k in e.lower() for e in enhanced_expertise for k in ("ai ", "genai", "agentic")):
+                    enhanced_expertise.append(exp_item)
+
         # 1. Build Resume Object
         resume = Resume(
             name=ledger.name,
             headline=cfg["headline"],
             contact=f"mobile: {ledger.phone}  •  e-mail: {ledger.email}",
             summary=cfg["summary"],
-            expertise=cfg["expertise"],
+            expertise=enhanced_expertise,
             roles=filtered_roles,
             additional_roles=additional_roles,
             education=[
