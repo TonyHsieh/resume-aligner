@@ -169,12 +169,13 @@ def fetch_url_content(url: str, timeout: int = 25) -> tuple[str, str, str, bool]
             except Exception:
                 pass
 
-    # 2.8 Oracle Cloud HCM Candidate Experience
-    if "oraclecloud.com" in domain and ("/jobs/preview/" in parsed.path or "/job/" in parsed.path):
+    # 2.8 Oracle Cloud HCM Candidate Experience (including careers.oracle.com)
+    if ("oraclecloud.com" in domain or "careers.oracle.com" in domain) and ("/jobs/preview/" in parsed.path or "/job/" in parsed.path):
         m = re.search(r'/(?:jobs/preview|job)/(\d+)', parsed.path)
         if m:
             req_id = m.group(1)
-            api_url = f"https://{parsed.netloc}/hcmRestApi/resources/latest/recruitingCEJobRequisitionDetails/{req_id}"
+            api_host = "eeho.fa.us2.oraclecloud.com" if "careers.oracle.com" in domain else parsed.netloc
+            api_url = f"https://{api_host}/hcmRestApi/resources/latest/recruitingCEJobRequisitionDetails/{req_id}"
             try:
                 r = requests.get(api_url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"}, timeout=timeout)
                 if r.status_code == 200:
@@ -186,6 +187,8 @@ def fetch_url_content(url: str, timeout: int = 25) -> tuple[str, str, str, bool]
                         company = "Blue Shield of California"
                     elif "hcjy" in domain:
                         company = "CooperCompanies"
+                    elif "careers.oracle.com" in domain:
+                        company = "Oracle"
                     else:
                         company = d.get("Organization") or "Oracle Cloud"
                     sections = []

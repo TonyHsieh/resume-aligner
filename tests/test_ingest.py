@@ -110,6 +110,32 @@ def test_fetch_oraclecloud_multisection_and_company(monkeypatch):
     assert "QUALIFICATIONS:\n15+ years experience in enterprise data architecture." in text
 
 
+def test_fetch_careers_oracle_com_routes_to_oraclecloud_api(monkeypatch):
+    seen_urls = []
+
+    def fake_get(url, headers=None, timeout=None):
+        seen_urls.append(url)
+        return _DummyResponse(
+            status_code=200,
+            json_data={
+                "Title": "Platform Software Engineering Architect",
+                "ExternalDescriptionStr": "<p>Design OCI platform services.</p>",
+            },
+        )
+
+    monkeypatch.setattr(ingest.requests, "get", fake_get)
+    text, title, company, is_closed = ingest.fetch_url_content(
+        "https://careers.oracle.com/en/sites/jobsearch/job/350911/?keyword=Platform"
+    )
+    assert seen_urls == [
+        "https://eeho.fa.us2.oraclecloud.com/hcmRestApi/resources/latest/recruitingCEJobRequisitionDetails/350911"
+    ]
+    assert title == "Platform Software Engineering Architect"
+    assert company == "Oracle"
+    assert is_closed is False
+    assert "DESCRIPTION:\nDesign OCI platform services." in text
+
+
 def test_fetch_mercor_next_data(monkeypatch):
     fake_html = """<!DOCTYPE html><html><head>
     <script id="__NEXT_DATA__" type="application/json">
